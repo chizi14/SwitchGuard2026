@@ -1,0 +1,76 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --c-surface: 248 249 250;
+  --c-surface-dim: 217 218 219;
+  --c-surface-lowest: 255 255 255;
+  --c-surface-low: 243 244 245;
+  --c-surface-container: 237 238 239;
+  --c-surface-high: 231 232 233;
+  --c-surface-highest: 225 227 228;
+  --c-on-surface: 25 28 29;
+  --c-on-surface-variant: 68 70 79;
+  --c-outline: 117 119 128;
+  --c-outline-variant: 197 198 209;
+  --c-background: 248 249 250;
+  --c-on-background: 25 28 29;
+}
+
+html.dark {
+  --c-surface: 18 20 22;
+  --c-surface-dim: 12 14 15;
+  --c-surface-lowest: 10 11 13;
+  --c-surface-low: 26 29 31;
+  --c-surface-container: 32 35 38;
+  --c-surface-high: 40 43 47;
+  --c-surface-highest: 50 54 58;
+  --c-on-surface: 230 231 233;
+  --c-on-surface-variant: 196 199 209;
+  --c-outline: 142 145 155;
+  --c-outline-variant: 68 71 79;
+  --c-background: 14 16 18;
+  --c-on-background: 230 231 233;
+}
+
+html, body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background-color: rgb(var(--c-background));
+  color: rgb(var(--c-on-background));
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(var(--c-outline-variant)) transparent;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #000519;
+  outline-offset: 2px;
+}
+
+html.dark button:focus-visible,
+html.dark a:focus-visible,
+html.dark input:focus-visible,
+html.dark textarea:focus-visible {
+  outline-color: #7185bd;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
