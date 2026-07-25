@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Sun, Moon, Bell, MessageSquare, ShieldCheck, LogOut } from "lucide-react";
+import { Sun, Moon, Bell, Globe, MessageSquare, ShieldCheck, LogOut } from "lucide-react";
 import Shell from "../Components/Shell";
 import Card from "../Components/Card";
 import { useTheme } from "../Context/ThemeContext";
@@ -42,6 +42,7 @@ export default function Settings() {
   const [smsAlerts, setSmsAlerts] = useState(true);
   const [pushAlerts, setPushAlerts] = useState(true);
   const [twoFactor, setTwoFactor] = useState(true);
+  const [language, setLanguage] = useState("en");
 
   return (
     <Shell mobileTitle="Settings">
@@ -63,6 +64,45 @@ export default function Settings() {
               checked={theme === "dark"}
               onChange={toggleTheme}
             />
+          </div>
+        </Card>
+
+        <Card padded={false} className="mb-5">
+          <div className="p-5 pb-2">
+            <h2 className="text-xs font-bold uppercase tracking-wide text-on-surface-variant">Language</h2>
+          </div>
+          <div className="px-5 pb-4">
+            <div className="flex items-center gap-3.5 mb-3">
+              <div className="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center shrink-0">
+                <Globe size={18} className="text-on-surface-variant" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-on-surface">App language</p>
+                <p className="text-xs text-on-surface-variant mt-0.5">Choose your preferred language</p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setLanguage("en")}
+                className={`flex-1 h-12 rounded font-semibold text-sm transition-colors ${
+                  language === "en"
+                    ? "bg-primary text-on-primary"
+                    : "border border-outline-variant text-on-surface bg-surface-lowest hover:bg-surface-container"
+                }`}
+              >
+                English
+              </button>
+              <button
+                onClick={() => setLanguage("ch")}
+                className={`flex-1 h-12 rounded font-semibold text-sm transition-colors ${
+                  language === "ch"
+                    ? "bg-primary text-on-primary"
+                    : "border border-outline-variant text-on-surface bg-surface-lowest hover:bg-surface-container"
+                }`}
+              >
+                Chichewa
+              </button>
+            </div>
           </div>
         </Card>
 

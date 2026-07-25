@@ -1,199 +1,260 @@
-import { useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
-import { RotateCcw, Flag, Timer, Search, Calendar, Download, Eye, TrendingUp, TrendingDown, MapPin } from "lucide-react";
+import { useMemo, useState } from "react";
+import {
+  Download,
+  Eye,
+  FlagTriangleRight,
+  RotateCcw,
+  Search,
+  Timer,
+  TrendingDown,
+  TrendingUp,
+} from "lucide-react";
 import Shell from "../Components/Shell";
 import Card from "../Components/Card";
 import Chip from "../Components/Chip";
 import Button from "../Components/Button";
-import { adminStats, adminTransactions, atmFailureHotspots, currency } from "../Data/mockData";
+import IconBadge from "../Components/IconBadge";
+import { adminStats, adminTransactionRows, currency } from "../Data/mockData";
 
 export default function AdminDashboard() {
-  const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
-  const dateRanges = ["Today", "This week", "This month"];
-  const [dateRangeIndex, setDateRangeIndex] = useState(0);
+  const [dateFilter, setDateFilter] = useState("All");
+  const [page, setPage] = useState(1);
+  const pageSize = 5;
 
-  const exportCsv = () => {
-    const header = ["Customer", "Account", "Transaction ID", "Amount (MWK)", "Status", "Time"];
-    const rows = filtered.map((t) => [t.customer, t.account, t.txnId, t.amount, t.status, t.time]);
-    const csv = [header, ...rows].map((r) => r.join(",")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
+  const filtered = useMemo(() => {
+    return adminTransactionRows.filter((row) => {
+      const searchText = `${row.customer} ${row.id} ${row.account}`.toLowerCase();
+      const matchesQuery = searchText.includes(query.toLowerCase());
+      const matchesStatus = statusFilter === "All" || row.status === statusFilter;
+      const matchesDate = dateFilter === "All" || row.dateLabel === dateFilter;
+      return matchesQuery && matchesStatus && matchesDate;
+    });
+  }, [query, statusFilter, dateFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const startIndex = (currentPage - 1) * pageSize;
+  const visibleRows = filtered.slice(startIndex, startIndex + pageSize);
+  const startEntry = filtered.length === 0 ? 0 : startIndex + 1;
+  const endEntry = filtered.length === 0 ? 0 : startIndex + visibleRows.length;
+
+  const handleFilterChange = (setter) => (event) => {
+    setter(event.target.value);
+    setPage(1);
+  };
+
+  const handleExportCSV = () => {
+    const headers = ["Customer Name", "Transaction ID", "Amount", "Status", "Time"];
+    const rows = filtered.map((row) => [
+      row.customer,
+      row.id,
+      row.amount,
+      row.status,
+      row.time,
+    ]);
+
+    const csvContent = [headers, ...rows]
+      .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
+    const today = new Date().toISOString().slice(0, 10);
     link.href = url;
-    link.download = "switchguard-transactions.csv";
+    link.download = `switchguard-transactions-${today}.csv`;
     link.click();
     URL.revokeObjectURL(url);
   };
 
-  const filtered = useMemo(() => {
-    return adminTransactions.filter((t) => {
-      const matchesQuery = `${t.customer} ${t.txnId}`.toLowerCase().includes(query.toLowerCase());
-      const matchesStatus = statusFilter === "All" || t.status === statusFilter;
-      return matchesQuery && matchesStatus;
-    });
-  }, [query, statusFilter]);
-
   const statuses = ["All", "Alert", "Reversed", "Pending"];
+  const dates = ["All", "Today", "Yesterday"];
 
   return (
-    <Shell brand="SwitchGuard Admin" mobileTitle="Admin" showSearch>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-on-surface">Admin Console</h1>
-        <p className="text-sm text-on-surface-variant mt-0.5">
-          Every detection, reversal, and block — visible in real time. Nothing happens in a black box.
-        </p>
-      </div>
+    <Shell brand="SwitchGuard Admin Console" mobileTitle="SwitchGuard Admin Console" showSearch hideNav>
+      <div className="space-y-5 lg:space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-6">
+          <Card className="flex items-start gap-3.5">
+            <IconBadge icon={RotateCcw} tone="success" size={44} />
+            <div className="min-w-0">
+              <p className="text-xs font-bold tracking-[0.18em] uppercase text-on-surface-variant">Total reversals today</p>
+              <p className="text-2xl font-bold text-on-surface mt-1">{adminStats.totalReversalsToday}</p>
+              <p className="text-xs text-on-tertiary-container font-semibold mt-1 flex items-center gap-1">
+                <TrendingUp size={12} />
+                +{adminStats.reversalsGrowthPct}% vs yesterday
+              </p>
+            </div>
+          </Card>
 
-      {/* Stat cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
-        <Card className="flex items-start gap-3.5">
-          <div className="w-11 h-11 rounded-full bg-tertiary-container/20 flex items-center justify-center shrink-0">
-            <RotateCcw size={18} className="text-on-tertiary-container" />
-          </div>
-          <div>
-            <p className="text-xs font-semibold text-on-surface-variant uppercase tracking-wide">Total reversals today</p>
-            <p className="text-2xl font-bold text-on-surface mt-1">{adminStats.totalReversalsToday}</p>
-            <p className="text-xs text-on-tertiary-container font-semibold mt-1 flex items-center gap-1">
-              <TrendingUp size={12} /> +{adminStats.reversalsGrowthPct}% from yesterday
-            </p>
-          </div>
-        </Card>
-        <Card className="flex items-start gap-3.5">
-          <div className="w-11 h-11 rounded-full bg-error-container flex items-center justify-center shrink-0">
-            <Flag size={18} className="text-on-error-container" />
-          </div>
-          <div>
-            <p className="text-xs font-semibold text-on-surface-variant uppercase tracking-wide">Active flagged items</p>
-            <p className="text-2xl font-bold text-on-surface mt-1">{adminStats.activeFlagged}</p>
-            <p className="text-xs text-error font-semibold mt-1">Requires review</p>
-          </div>
-        </Card>
-        <Card className="flex items-start gap-3.5">
-          <div className="w-11 h-11 rounded-full bg-secondary-container/40 flex items-center justify-center shrink-0">
-            <Timer size={18} className="text-on-secondary-container" />
-          </div>
-          <div>
-            <p className="text-xs font-semibold text-on-surface-variant uppercase tracking-wide">Avg. resolution time</p>
-            <p className="text-2xl font-bold text-on-surface mt-1">{adminStats.avgResolutionSeconds}s</p>
-            <p className="text-xs text-on-surface-variant mt-1">vs. {adminStats.manualProcessDays} manually</p>
-          </div>
-        </Card>
-      </div>
+          <Card className="flex items-start gap-3.5">
+            <IconBadge icon={FlagTriangleRight} tone="error" size={44} />
+            <div className="min-w-0">
+              <p className="text-xs font-bold tracking-[0.18em] uppercase text-on-surface-variant">Active flagged items</p>
+              <p className="text-2xl font-bold text-on-surface mt-1">{adminStats.activeFlagged}</p>
+              <p className="text-xs text-error font-semibold mt-1">Requires immediate action</p>
+            </div>
+          </Card>
 
-      {/* ATM hotspots - the "helps the bank too" angle */}
-      <Card className="mb-5">
-        <div className="flex items-center gap-2 mb-4">
-          <MapPin size={16} className="text-on-surface-variant" />
-          <h3 className="font-bold text-on-surface text-sm">ATMs with the most dispense errors this month</h3>
+          <Card className="flex items-start gap-3.5">
+            <IconBadge icon={Timer} tone="neutral" size={44} />
+            <div className="min-w-0">
+              <p className="text-xs font-bold tracking-[0.18em] uppercase text-on-surface-variant">Avg. resolution time (s)</p>
+              <p className="text-2xl font-bold text-on-surface mt-1">{adminStats.avgResolutionSeconds}s</p>
+              <p className="text-xs text-on-surface-variant mt-1 flex items-center gap-1">
+                <TrendingDown size={12} className="text-on-tertiary-container" />
+                {adminStats.avgResolutionDeltaSeconds}s vs average
+              </p>
+            </div>
+          </Card>
         </div>
-        <div className="space-y-3">
-          {atmFailureHotspots.map((atm) => (
-            <div key={atm.location} className="flex items-center justify-between gap-3">
-              <span className="text-sm text-on-surface flex-1 min-w-0 truncate">{atm.location}</span>
-              <div className="flex items-center gap-2 shrink-0">
-                <span className="text-sm font-bold text-on-surface">{atm.failures} failures</span>
-                {atm.trend === "up" ? (
-                  <TrendingUp size={14} className="text-error" />
-                ) : (
-                  <TrendingDown size={14} className="text-on-tertiary-container" />
-                )}
+
+        <Card padded={false}>
+          <div className="flex flex-col gap-4 p-5 md:p-6 border-b border-outline-variant bg-surface-lowest/40">
+            <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+              <div>
+                <p className="text-xs font-bold tracking-[0.18em] uppercase text-on-surface-variant">Transaction Monitoring</p>
+                <h1 className="text-xl font-bold text-on-surface mt-1">High priority queue</h1>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 xl:min-w-[48rem]">
+                <label className="relative block sm:col-span-2 xl:col-span-1">
+                  <span className="sr-only">Search transactions</span>
+                  <Search size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-outline" />
+                  <input
+                    type="text"
+                    value={query}
+                    onChange={(event) => {
+                      setQuery(event.target.value);
+                      setPage(1);
+                    }}
+                    placeholder="Search customer or txn ID"
+                    className="w-full h-11 rounded-md border border-outline-variant bg-surface-lowest pl-11 pr-4 text-sm text-on-surface placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                  />
+                </label>
+
+                <label className="block">
+                  <span className="sr-only">Status filter</span>
+                  <select
+                    value={statusFilter}
+                    onChange={handleFilterChange(setStatusFilter)}
+                    className="w-full h-11 rounded-md border border-outline-variant bg-surface-lowest px-3 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                  >
+                    {statuses.map((status) => (
+                      <option key={status} value={status}>
+                        {status === "All" ? "All statuses" : status}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="block">
+                  <span className="sr-only">Date filter</span>
+                  <select
+                    value={dateFilter}
+                    onChange={handleFilterChange(setDateFilter)}
+                    className="w-full h-11 rounded-md border border-outline-variant bg-surface-lowest px-3 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                  >
+                    {dates.map((date) => (
+                      <option key={date} value={date}>
+                        {date === "All" ? "All dates" : date}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <Button variant="outline" icon={Download} className="!h-11 !px-4 !justify-center sm:col-span-2 xl:col-span-1" onClick={handleExportCSV}>
+                  Export CSV
+                </Button>
               </div>
             </div>
-          ))}
-        </div>
-        <p className="text-xs text-on-surface-variant mt-4 pt-4 border-t border-outline-variant leading-relaxed">
-          This same detection data can flag which physical machines need maintenance —
-          turning customer protection into an operations signal for the bank.
-        </p>
-      </Card>
-
-      {/* Transaction monitoring table */}
-      <Card padded={false}>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-5">
-          <h3 className="font-bold text-on-surface">Transaction monitoring</h3>
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="relative">
-              <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-outline" />
-              <input
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Transaction ID, customer…"
-                className="w-48 h-9 pl-9 pr-3 rounded-full bg-surface-low border border-outline-variant text-xs placeholder:text-outline focus:outline-none focus:border-primary transition-colors"
-              />
-            </div>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="h-9 px-3 rounded-full bg-surface-low border border-outline-variant text-xs font-medium text-on-surface-variant focus:outline-none focus:border-primary"
-            >
-              {statuses.map((s) => (
-                <option key={s} value={s}>{s === "All" ? "All statuses" : s}</option>
-              ))}
-            </select>
-            <button
-              onClick={() => setDateRangeIndex((i) => (i + 1) % dateRanges.length)}
-              className="flex items-center gap-1.5 h-9 px-3 rounded-full bg-surface-low border border-outline-variant text-xs font-medium text-on-surface-variant hover:border-primary transition-colors"
-            >
-              <Calendar size={13} />
-              {dateRanges[dateRangeIndex]}
-            </button>
-            <Button variant="primary" icon={Download} className="!h-9 !px-3 !text-xs" onClick={exportCsv}>
-              Export CSV
-            </Button>
           </div>
-        </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-surface-low text-left text-xs font-bold text-on-surface-variant uppercase tracking-wide">
-                <th className="px-5 py-3">Customer</th>
-                <th className="px-5 py-3">Transaction ID</th>
-                <th className="px-5 py-3 text-right">Amount</th>
-                <th className="px-5 py-3">Status</th>
-                <th className="px-5 py-3">Time</th>
-                <th className="px-5 py-3 text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-outline-variant">
-              {filtered.map((t) => (
-                <tr key={t.txnId} className="hover:bg-surface-low transition-colors">
-                  <td className="px-5 py-3.5">
-                    <p className="font-semibold text-on-surface">{t.customer}</p>
-                    <p className="text-xs text-on-surface-variant">Acc: {t.account}</p>
-                  </td>
-                  <td className="px-5 py-3.5 font-mono text-xs text-on-surface-variant">{t.txnId}</td>
-                  <td className="px-5 py-3.5 text-right font-bold text-on-surface">{currency(t.amount)}</td>
-                  <td className="px-5 py-3.5"><Chip status={t.status} /></td>
-                  <td className="px-5 py-3.5 text-xs text-on-surface-variant">{t.time}</td>
-                  <td className="px-5 py-3.5 text-right">
-                    <button
-                      aria-label={`View ${t.txnId}`}
-                      onClick={() => navigate("/activity")}
-                      className="text-on-surface-variant hover:text-on-surface transition-colors"
-                    >
-                      <Eye size={16} />
-                    </button>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[860px] text-sm">
+              <thead>
+                <tr className="bg-surface-low text-left text-xs font-bold text-on-surface-variant uppercase tracking-wide">
+                  <th className="px-5 py-3">Customer Name</th>
+                  <th className="px-5 py-3">Transaction ID</th>
+                  <th className="px-5 py-3 text-right">Amount</th>
+                  <th className="px-5 py-3">Status</th>
+                  <th className="px-5 py-3">Time</th>
+                  <th className="px-5 py-3 text-right">Actions</th>
                 </tr>
-              ))}
-              {filtered.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="px-5 py-10 text-center text-sm text-on-surface-variant">
-                    No transactions match your filters.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-        <div className="flex items-center justify-between px-5 py-4 border-t border-outline-variant">
-          <p className="text-xs text-on-surface-variant">Showing {filtered.length} of {adminTransactions.length} today's entries</p>
-        </div>
-      </Card>
+              </thead>
+              <tbody className="divide-y divide-outline-variant">
+                {visibleRows.map((row) => {
+                  const initials = row.customer
+                    .split(" ")
+                    .slice(0, 2)
+                    .map((part) => part[0])
+                    .join("");
+
+                  return (
+                    <tr key={row.id} className="hover:bg-surface-low transition-colors">
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-10 h-10 rounded-full bg-primary-container text-on-primary flex items-center justify-center text-xs font-bold shrink-0">
+                            {initials}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-semibold text-on-surface truncate">{row.customer}</p>
+                            <p className="text-xs text-on-surface-variant mt-1">Acct. {row.account}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-5 py-4 font-mono text-xs text-on-surface-variant">#{row.id}</td>
+                      <td className="px-5 py-4 text-right font-bold text-on-surface">{currency(row.amount)}</td>
+                      <td className="px-5 py-4">
+                        <Chip status={row.status}>{row.status}</Chip>
+                      </td>
+                      <td className="px-5 py-4 text-xs text-on-surface-variant">{row.time}</td>
+                      <td className="px-5 py-4 text-right">
+                        <Button variant="outline" icon={Eye} aria-label={`View ${row.id}`} className="!h-10 !w-10 !px-0" />
+                      </td>
+                    </tr>
+                  );
+                })}
+                {visibleRows.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="px-5 py-12 text-center text-sm text-on-surface-variant">
+                      No transactions match the selected filters.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-5 py-4 border-t border-outline-variant">
+            <p className="text-xs text-on-surface-variant">
+              Showing {startEntry} to {endEntry} of {filtered.length} entries
+            </p>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                className="!h-10 !px-4"
+                disabled={currentPage === 1}
+                onClick={() => setPage((current) => Math.max(1, current - 1))}
+              >
+                Prev
+              </Button>
+              <Button variant="outline" className="!h-10 !px-4">
+                {currentPage}
+              </Button>
+              <Button
+                variant="outline"
+                className="!h-10 !px-4"
+                disabled={currentPage === totalPages}
+                onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        </Card>
+      </div>
     </Shell>
   );
 }

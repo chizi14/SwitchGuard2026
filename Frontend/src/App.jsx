@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "./Context/ThemeContext";
 import { NotificationsProvider } from "./Context/NotificationsContext";
 import Login from "./Pages/Login";
+import AdminLogin from "./Pages/AdminLogin";
 import CustomerDashboard from "./Pages/CustomerDashboard";
 import BlockCard from "./Pages/BlockCard";
 import SecurityAlert from "./Pages/SecurityAlert";
@@ -26,6 +27,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/admin-login" element={<AdminLogin />} />
             <Route path="/dashboard" element={<CustomerDashboard />} />
             <Route path="/security" element={<BlockCard />} />
             <Route path="/security/alert" element={<SecurityAlert />} />

@@ -1,15 +1,15 @@
-const toneStyles = {
-  primary: "bg-primary-container/10 text-primary-container",
-  secondary: "bg-secondary-container/40 text-on-secondary-container",
-  success: "bg-tertiary-container/15 text-on-tertiary-container",
-  error: "bg-error-container text-on-error-container",
-  neutral: "bg-surface-container text-on-surface-variant",
+const TONE_STYLES = {
+  primary: "bg-primary-container text-on-primary-container",
+  success: "bg-tertiary-container text-on-tertiary-container",
+  danger: "bg-error-container text-on-error-container",
+  warning: "bg-secondary-container text-on-secondary-container",
+  neutral: "bg-surface-high text-on-surface-variant",
 };
 
 export default function IconBadge({ icon: Icon, tone = "primary", size = 44 }) {
   return (
     <div
-      className={`rounded-full flex items-center justify-center shrink-0 ${toneStyles[tone]}`}
+      className={`rounded-full flex items-center justify-center shrink-0 ${TONE_STYLES[tone]}`}
       style={{ width: size, height: size }}
     >
       <Icon size={size * 0.5} strokeWidth={2} />
