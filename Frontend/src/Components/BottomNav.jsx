@@ -1,4 +1,5 @@
 import { NavLink } from "react-router-dom";
+<<<<<<< HEAD
 import {
   LayoutGrid,
   Activity,
@@ -7,13 +8,15 @@ import {
   Phone,
   CreditCard,
 } from "lucide-react";
+=======
+import { LayoutGrid, Activity, ShieldCheck, Phone } from "lucide-react";
+>>>>>>> origin/zaithwa
 
 const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutGrid },
   { to: "/activity", label: "Activity", icon: Activity },
   { to: "/alerts", label: "Alerts", icon: ShieldAlert },
   { to: "/security", label: "Security", icon: ShieldCheck },
-  { to: "/payment-approval", label: "Payments", icon: CreditCard },
   { to: "/ussd-demo", label: "USSD", icon: Phone },
 ];
 
