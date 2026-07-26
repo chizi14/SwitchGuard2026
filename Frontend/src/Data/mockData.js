@@ -243,8 +243,6 @@ export const securityAlert = {
   detectionMs: 340,
 };
 
-<<<<<<< HEAD
-
 export const alertHistory = [
   {
     id: "al-1",
@@ -282,14 +280,13 @@ export const pendingPayments = [
   { id: "pp-3", merchant: "Prime Video Subscription", type: "Recurring subscription", amount: 8900, cardId: "card-2", urgent: false },
   { id: "pp-4", merchant: "Alibaba Order", type: "One-time purchase", amount: 67500, cardId: "card-2", urgent: false },
 ];
-=======
+
 export const paymentApproval = {
   merchant: "Chipiku Stores",
   amount: 124000,
   location: "Blantyre, MW",
   countdown: 57,
 };
->>>>>>> origin/zaithwa
 
 // Admin dashboard — multiple different customers, deliberately diverse
 export const adminStats = {

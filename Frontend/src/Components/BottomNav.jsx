@@ -1,16 +1,5 @@
 import { NavLink } from "react-router-dom";
-<<<<<<< HEAD
-import {
-  LayoutGrid,
-  Activity,
-  ShieldAlert,
-  ShieldCheck,
-  Phone,
-  CreditCard,
-} from "lucide-react";
-=======
-import { LayoutGrid, Activity, ShieldCheck, Phone } from "lucide-react";
->>>>>>> origin/zaithwa
+import { LayoutGrid, Activity, ShieldAlert, ShieldCheck, Phone } from "lucide-react";
 
 const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutGrid },
