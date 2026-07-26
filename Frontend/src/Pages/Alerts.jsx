@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import {
   ShieldAlert,
   History,
@@ -16,6 +18,77 @@ import Chip from "../Components/Chip";
 import PhoneSmsPreview from "../Components/PhoneSmsPreview";
 import { useNotifications } from "../Context/NotificationsContext";
 import { securityAlert, alertHistory, currency, customer } from "../Data/mockData";
+
+// Real-world coordinates — used to plot the actual cities on a real map.
+const HOME_COORDS = [-15.7861, 35.0058]; // Blantyre
+const FLAGGED_COORDS = [-13.9626, 33.7741]; // Lilongwe
+
+function dotIcon(color) {
+  return L.divIcon({
+    className: "",
+    html: `<span style="display:block;width:14px;height:14px;border-radius:9999px;background:${color};border:3px solid #ffffff;box-shadow:0 1px 4px rgba(0,0,0,0.35)"></span>`,
+    iconSize: [14, 14],
+    iconAnchor: [7, 7],
+  });
+}
+
+// Real OpenStreetMap view of the two cities involved in the anomaly,
+// with a dashed line connecting them — same visual language as the
+// mock map it replaces, just backed by an actual map.
+function AlertMap({ homeCity, flaggedCity }) {
+  const containerRef = useRef(null);
+  const mapRef = useRef(null);
+
+  useEffect(() => {
+    if (!containerRef.current || mapRef.current) return;
+
+    const map = L.map(containerRef.current, {
+      zoomControl: true,
+      scrollWheelZoom: false,
+      attributionControl: true,
+    });
+    mapRef.current = map;
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    }).addTo(map);
+
+    L.polyline([HOME_COORDS, FLAGGED_COORDS], {
+      color: "#9aa0ac",
+      weight: 3,
+      dashArray: "6 8",
+    }).addTo(map);
+
+    L.marker(HOME_COORDS, { icon: dotIcon("#000519") }).addTo(map);
+    L.marker(FLAGGED_COORDS, { icon: dotIcon("#775a00") }).addTo(map);
+
+    map.fitBounds(L.latLngBounds([HOME_COORDS, FLAGGED_COORDS]), { padding: [36, 36] });
+
+    return () => {
+      map.remove();
+      mapRef.current = null;
+    };
+  }, []);
+
+  return (
+    <div className="relative isolate">
+      <div
+        ref={containerRef}
+        className="switchguard-map w-full h-56 rounded-md overflow-hidden border border-outline-variant"
+      />
+      <div className="absolute bottom-3 left-3 bg-surface-lowest rounded px-2.5 py-1.5 shadow-soft pointer-events-none">
+        <p className="text-[10px] font-semibold text-on-surface-variant">HOME CITY</p>
+        <p className="text-xs font-bold text-on-surface">{homeCity}</p>
+      </div>
+      <div className="absolute top-3 right-3 bg-surface-lowest rounded px-2.5 py-1.5 shadow-soft pointer-events-none">
+        <p className="text-[10px] font-semibold text-secondary">FLAGGED LOCATION</p>
+        <p className="text-xs font-bold text-on-surface">{flaggedCity}</p>
+      </div>
+    </div>
+  );
+}
 
 const historyToneStyles = {
   "Needs Review": "bg-secondary-container/40 text-on-secondary-container",
@@ -170,28 +243,7 @@ export default function Alerts() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 pt-2">
-            {/* Simple two-point map visual, no external map dependency */}
-            <div className="relative bg-surface-container rounded-md h-48 overflow-hidden">
-              <svg viewBox="0 0 300 220" className="w-full h-full">
-                <path
-                  d="M40 170 Q120 60 260 60"
-                  fill="none"
-                  stroke="#c5c6d1"
-                  strokeWidth="3"
-                  strokeDasharray="6 6"
-                />
-                <circle cx="40" cy="170" r="9" fill="#000519" />
-                <circle cx="260" cy="60" r="9" fill="#775a00" />
-              </svg>
-              <div className="absolute bottom-3 left-3 bg-surface-lowest rounded px-2.5 py-1.5 shadow-soft">
-                <p className="text-[10px] font-semibold text-on-surface-variant">HOME CITY</p>
-                <p className="text-xs font-bold text-on-surface">{securityAlert.homeCity}</p>
-              </div>
-              <div className="absolute top-3 right-3 bg-surface-lowest rounded px-2.5 py-1.5 shadow-soft">
-                <p className="text-[10px] font-semibold text-secondary">FLAGGED LOCATION</p>
-                <p className="text-xs font-bold text-on-surface">{securityAlert.flaggedCity}</p>
-              </div>
-            </div>
+            <AlertMap homeCity={securityAlert.homeCity} flaggedCity={securityAlert.flaggedCity} />
 
             <div className="space-y-3">
               <div className="flex items-center justify-between">
