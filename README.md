@@ -168,46 +168,46 @@ This is a **hackathon prototype**. Live ATM network monitoring and real mobile-m
 ## Screenshots
 
 ### Login
-![Login](docs/screenshots/Login.png)
+![Login](docs/Login.png)
 
 ### Dashboard
-![Dashboard](docs/screenshots/Dashboard.png)
+![Dashboard](docs/Dashboard.png)
 
 ### Activity — automatic reversal
-![Activity reversal](docs/screenshots/Activity-Reversal.png)
+![Activity reversal](docs/Activity-Reversal.png)
 
 ### Alerts
-![Alerts](docs/screenshots/Alerts.png)
+![Alerts](docs/Alerts.png)
 
 ### Security — block card
-![Security](docs/screenshots/Security-Block-card.png)
+![Security](docs/Security-Block-card.png)
 
 ### Payments
-![Payments](docs/screenshots/Payments.png)
+![Payments](docs/Payments.png)
 
 ### USSD Demo
-![USSD Demo](docs/screenshots/USSD%20Demo.png)
+![USSD Demo](docs/USSD%20Demo.png)
 
 ### Notifications
-![Notifications](docs/screenshots/Notifications.png)
+![Notifications](docs/Notifications.png)
 
 ### Profile
-![Profile](docs/screenshots/Profile.png)
+![Profile](docs/Profile.png)
 
 ### Settings
-![Settings](docs/screenshots/Settings.png)
+![Settings](docs/Settings.png)
 
 ### Help Centre
-![Help Centre](docs/screenshots/Help%20Centre.png)
+![Help Centre](docs/Help%20Centre.png)
 
 ### Chatbot
-![Chatbot](docs/screenshots/Chatbot.png)
+![Chatbot](docs/Chatbot.png)
 
 ### Privacy Policy
-![Privacy Policy](docs/screenshots/Privacy%20Policy.png)
+![Privacy Policy](docs/Privacy%20Policy.png)
 
 ### Terms of Service
-![Terms of Service](docs/screenshots/Terms%20of%20Service.png)
+![Terms of Service](docs/Terms%20of%20Service.png)
 
 ---
 
