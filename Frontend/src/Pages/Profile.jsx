@@ -1,10 +1,15 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { User, Phone, MapPin, CreditCard, Settings as SettingsIcon, ChevronRight } from "lucide-react";
 import Shell from "../Components/Shell";
 import Card from "../Components/Card";
-import { customer, cards } from "../Data/mockData";
+import { getStoredCustomer, getCards } from "../api";
 
 export default function Profile() {
+  const [cards, setCards] = useState([]);
+  const cust = getStoredCustomer() || {};
+
+  useEffect(() => { getCards().then(setCards).catch(() => {}); }, []);
   const navigate = useNavigate();
 
   return (
@@ -12,11 +17,11 @@ export default function Profile() {
       <div className="max-w-xl mx-auto">
         <Card className="flex items-center gap-4 mb-5">
           <div className="w-16 h-16 rounded-full bg-primary-container text-white flex items-center justify-center text-xl font-bold shrink-0">
-            {customer.initials}
+            {cust.initials}
           </div>
           <div>
-            <h1 className="text-xl font-bold text-on-surface">{customer.name}</h1>
-            <p className="text-sm text-on-surface-variant">{customer.accountNumber}</p>
+            <h1 className="text-xl font-bold text-on-surface">{cust.name}</h1>
+            <p className="text-sm text-on-surface-variant">{cust.accountNumber}</p>
           </div>
         </Card>
 
@@ -31,21 +36,21 @@ export default function Profile() {
               <User size={18} className="text-on-surface-variant shrink-0" />
               <div>
                 <p className="text-xs text-on-surface-variant">Full name</p>
-                <p className="text-sm font-semibold text-on-surface">{customer.name}</p>
+                <p className="text-sm font-semibold text-on-surface">{cust.name}</p>
               </div>
             </div>
             <div className="flex items-center gap-3.5 px-5 py-4">
               <Phone size={18} className="text-on-surface-variant shrink-0" />
               <div>
                 <p className="text-xs text-on-surface-variant">Phone number</p>
-                <p className="text-sm font-semibold text-on-surface">{customer.phone}</p>
+                <p className="text-sm font-semibold text-on-surface">{cust.phone}</p>
               </div>
             </div>
             <div className="flex items-center gap-3.5 px-5 py-4">
               <MapPin size={18} className="text-on-surface-variant shrink-0" />
               <div>
                 <p className="text-xs text-on-surface-variant">Home city</p>
-                <p className="text-sm font-semibold text-on-surface">{customer.homeCity}</p>
+                <p className="text-sm font-semibold text-on-surface">{cust.homeCity}</p>
               </div>
             </div>
           </div>
@@ -58,7 +63,7 @@ export default function Profile() {
             </h2>
           </div>
           <div className="divide-y divide-outline-variant">
-            {cards.map((c) => (
+            {(cards.length ? cards : []).map((c) => (
               <div key={c.id} className="flex items-center gap-3.5 px-5 py-4">
                 <CreditCard size={18} className="text-on-surface-variant shrink-0" />
                 <div className="flex-1">

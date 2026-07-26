@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Download,
   Eye,
@@ -14,24 +14,32 @@ import Card from "../Components/Card";
 import Chip from "../Components/Chip";
 import Button from "../Components/Button";
 import IconBadge from "../Components/IconBadge";
-import { adminStats, adminTransactionRows, currency } from "../Data/mockData";
+import { getAdminStats, getAdminTransactions, exportAdminCsv, currency } from "../api";
 
 export default function AdminDashboard() {
+  const [stats, setStats] = useState({});
+  const [rows, setRows] = useState([]);
+  const [totalRows, setTotalRows] = useState(0);
+  const [loaded, setLoaded] = useState(false);
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [dateFilter, setDateFilter] = useState("All");
   const [page, setPage] = useState(1);
   const pageSize = 5;
 
-  const filtered = useMemo(() => {
-    return adminTransactionRows.filter((row) => {
-      const searchText = `${row.customer} ${row.id} ${row.account}`.toLowerCase();
-      const matchesQuery = searchText.includes(query.toLowerCase());
-      const matchesStatus = statusFilter === "All" || row.status === statusFilter;
-      const matchesDate = dateFilter === "All" || row.dateLabel === dateFilter;
-      return matchesQuery && matchesStatus && matchesDate;
-    });
-  }, [query, statusFilter, dateFilter]);
+  useEffect(() => {
+    getAdminStats().then(setStats).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    getAdminTransactions(query, statusFilter, dateFilter, page, pageSize).then((data) => {
+      setRows(data.entries || []);
+      setTotalRows(data.total || 0);
+      setLoaded(true);
+    }).catch(() => setLoaded(true));
+  }, [query, statusFilter, dateFilter, page]);
+
+  const filtered = useMemo(() => rows, [rows]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const currentPage = Math.min(page, totalPages);
@@ -46,27 +54,23 @@ export default function AdminDashboard() {
   };
 
   const handleExportCSV = () => {
-    const headers = ["Customer Name", "Transaction ID", "Amount", "Status", "Time"];
-    const rows = filtered.map((row) => [
-      row.customer,
-      row.id,
-      row.amount,
-      row.status,
-      row.time,
-    ]);
-
-    const csvContent = [headers, ...rows]
-      .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","))
-      .join("\n");
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    const today = new Date().toISOString().slice(0, 10);
-    link.href = url;
-    link.download = `switchguard-transactions-${today}.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
+    exportAdminCsv().catch(() => {
+      const headers = ["Customer Name", "Transaction ID", "Amount", "Status", "Time"];
+      const csvRows = filtered.map((row) => [
+        row.customer, row.id, row.amount, row.status, row.time,
+      ]);
+      const csvContent = [headers, ...csvRows]
+        .map((r) => r.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","))
+        .join("\n");
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      const today = new Date().toISOString().slice(0, 10);
+      link.href = url;
+      link.download = `switchguard-transactions-${today}.csv`;
+      link.click();
+      URL.revokeObjectURL(url);
+    });
   };
 
   const statuses = ["All", "Alert", "Reversed", "Pending"];
@@ -80,10 +84,10 @@ export default function AdminDashboard() {
             <IconBadge icon={RotateCcw} tone="success" size={44} />
             <div className="min-w-0">
               <p className="text-xs font-bold tracking-[0.18em] uppercase text-on-surface-variant">Total reversals today</p>
-              <p className="text-2xl font-bold text-on-surface mt-1">{adminStats.totalReversalsToday}</p>
+              <p className="text-2xl font-bold text-on-surface mt-1">{stats.totalReversalsToday}</p>
               <p className="text-xs text-on-tertiary-container font-semibold mt-1 flex items-center gap-1">
                 <TrendingUp size={12} />
-                +{adminStats.reversalsGrowthPct}% vs yesterday
+                +{stats.reversalsGrowthPct}% vs yesterday
               </p>
             </div>
           </Card>
@@ -92,7 +96,7 @@ export default function AdminDashboard() {
             <IconBadge icon={FlagTriangleRight} tone="error" size={44} />
             <div className="min-w-0">
               <p className="text-xs font-bold tracking-[0.18em] uppercase text-on-surface-variant">Active flagged items</p>
-              <p className="text-2xl font-bold text-on-surface mt-1">{adminStats.activeFlagged}</p>
+              <p className="text-2xl font-bold text-on-surface mt-1">{stats.activeFlagged}</p>
               <p className="text-xs text-error font-semibold mt-1">Requires immediate action</p>
             </div>
           </Card>
@@ -101,10 +105,10 @@ export default function AdminDashboard() {
             <IconBadge icon={Timer} tone="neutral" size={44} />
             <div className="min-w-0">
               <p className="text-xs font-bold tracking-[0.18em] uppercase text-on-surface-variant">Avg. resolution time (s)</p>
-              <p className="text-2xl font-bold text-on-surface mt-1">{adminStats.avgResolutionSeconds}s</p>
+              <p className="text-2xl font-bold text-on-surface mt-1">{stats.avgResolutionSeconds}s</p>
               <p className="text-xs text-on-surface-variant mt-1 flex items-center gap-1">
                 <TrendingDown size={12} className="text-on-tertiary-container" />
-                {adminStats.avgResolutionDeltaSeconds}s vs average
+                {stats.avgResolutionDeltaSeconds}s vs average
               </p>
             </div>
           </Card>

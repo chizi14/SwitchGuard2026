@@ -2,7 +2,21 @@ import { useState } from "react";
 import { Phone, RotateCcw, Info } from "lucide-react";
 import Shell from "../Components/Shell";
 import Card from "../Components/Card";
-import { ussdMenu, ussdShortcode } from "../Data/mockData";
+
+
+const ussdShortcode = "*384*46#";
+
+const ussdMenu = {
+  root: { text: "SwitchGuard\n1. Check balance\n2. Report failed withdrawal\n3. Block my card\n4. Recent alerts\n0. Exit", options: { "1": "balance", "2": "report-start", "3": "block-confirm", "4": "alerts", "0": "exit" } },
+  balance: { text: "Account balance:\nMWK 45,280.64\n\n0. Back to menu\n00. Exit", options: { "0": "root", "00": "exit" } },
+  "report-start": { text: "Report failed withdrawal\nEnter the amount you were charged but not given, e.g. 50000\n\n0. Back", options: { "0": "root" }, isInput: true, next: "report-confirm" },
+  "report-confirm": { text: "We found a matching ATM error for MWK 50,000.\n\n1. Confirm and reverse\n0. Back to menu", options: { "1": "report-done", "0": "root" } },
+  "report-done": { text: "Reversal started.\nMWK 50,000 will be credited within 10 minutes.\nSMS confirmation will follow.\n\n0. Back to menu\n00. Exit", options: { "0": "root", "00": "exit" } },
+  "block-confirm": { text: "Block your card ending 4242?\n1. Yes, block it\n2. No, go back", options: { "1": "block-done", "2": "root" } },
+  "block-done": { text: "Your card ending 4242 is now blocked.\nSMS confirmation sent.\n\n0. Back to menu\n00. Exit", options: { "0": "root", "00": "exit" } },
+  alerts: { text: "Recent alerts:\n1. Withdrawal flagged in Lilongwe\n2. Card blocked (self-requested)\n\n0. Back to menu", options: { "1": "root", "2": "root", "0": "root" } },
+  exit: { text: "Session ended. Dial *384*46# any time to check your account.", options: {} },
+};
 
 export default function UssdDemo() {
   const [started, setStarted] = useState(false);

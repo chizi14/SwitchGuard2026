@@ -17,7 +17,7 @@ import Button from "../Components/Button";
 import Chip from "../Components/Chip";
 import PhoneSmsPreview from "../Components/PhoneSmsPreview";
 import { useNotifications } from "../Context/NotificationsContext";
-import { securityAlert, alertHistory, currency, customer } from "../Data/mockData";
+import { getAlerts, resolveAlert, currency, getStoredCustomer } from "../api";
 
 // Real-world coordinates — used to plot the actual cities on a real map.
 const HOME_COORDS = [-15.7861, 35.0058]; // Blantyre
@@ -133,6 +133,16 @@ function RiskGauge({ score }) {
 export default function Alerts() {
   const navigate = useNavigate();
   const { addNotification } = useNotifications();
+  const [alerts, setAlerts] = useState([]);
+  const [loaded, setLoaded] = useState(false);
+  const cust = getStoredCustomer();
+
+  useEffect(() => {
+    getAlerts().then(setAlerts).catch(() => {}).finally(() => setLoaded(true));
+  }, []);
+
+  const securityAlert = alerts.length > 0 ? alerts[0] : {};
+  const alertHistory = alerts.slice(1);
 
   const [status, setStatus] = useState("Needs Review");
   const [smsMessage, setSmsMessage] = useState("");
@@ -146,7 +156,7 @@ export default function Alerts() {
   const handleConfirm = () => {
     setStatus("Confirmed");
     setSmsMessage(
-      `Hi ${customer.name.split(" ")[0]}, thanks for confirming the ${currency(
+      `Hi ${cust?.name || "Customer".split(" ")[0]}, thanks for confirming the ${currency(
         securityAlert.amount
       )} withdrawal in ${securityAlert.flaggedCity}. No further action needed.`
     );
@@ -162,7 +172,7 @@ export default function Alerts() {
   const handleFreeze = () => {
     setStatus("Blocked");
     setSmsMessage(
-      `Hi ${customer.name.split(" ")[0]}, your card is temporarily frozen after you flagged the ${securityAlert.flaggedCity} withdrawal as not you. Visit Security to unfreeze it.`
+      `Hi ${cust?.name || "Customer".split(" ")[0]}, your card is temporarily frozen after you flagged the ${securityAlert.flaggedCity} withdrawal as not you. Visit Security to unfreeze it.`
     );
     addNotification({
       icon: Lock,

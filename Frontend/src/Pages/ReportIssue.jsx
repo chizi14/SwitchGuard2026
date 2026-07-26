@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { CheckCircle2, ArrowLeft } from "lucide-react";
 import Shell from "../Components/Shell";
 import Card from "../Components/Card";
 import Button from "../Components/Button";
-import { reversalDetail } from "../Data/mockData";
+import { reportIssue } from "../api";
 
 const categories = ["Incorrect reversal amount", "Reversal not received", "Wrong transaction flagged", "Something else"];
 
@@ -13,10 +13,18 @@ export default function ReportIssue() {
   const [category, setCategory] = useState(categories[0]);
   const [details, setDetails] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [refId, setRefId] = useState("");
+  const reversalDetail = { transactionId: location?.state?.txId || "TXN-882944012" };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitted(true);
+    try {
+      const result = await reportIssue(reversalDetail.transactionId, category, details);
+      setRefId(result.referenceId);
+      setSubmitted(true);
+    } catch (err) {
+      alert(err.message);
+    }
   };
 
   if (submitted) {
@@ -29,7 +37,7 @@ export default function ReportIssue() {
             </div>
             <h3 className="font-bold text-lg text-on-surface mb-1.5">Report submitted</h3>
             <p className="text-sm text-on-surface-variant max-w-sm">
-              Reference #{reversalDetail.transactionId}-RPT. Our team will review this and follow
+              Reference #{refId || reversalDetail.transactionId + "-RPT"}. Our team will review this and follow
               up by SMS within 24 hours.
             </p>
             <Button variant="primary" className="mt-6" onClick={() => navigate("/activity")}>

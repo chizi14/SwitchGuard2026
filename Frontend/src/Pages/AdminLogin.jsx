@@ -1,48 +1,45 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, KeyRound, LockKeyhole, ShieldCheck, UserRound } from "lucide-react";
 import Shell from "../Components/Shell";
 import Card from "../Components/Card";
 import Button from "../Components/Button";
 import IconBadge from "../Components/IconBadge";
+import { adminLogin } from "../api";
 
 export default function AdminLogin() {
   const navigate = useNavigate();
   const [staffIdValue, setStaffIdValue] = useState("");
   const [pinValue, setPinValue] = useState("");
   const [showPin, setShowPin] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState({ staffIdValue: "", pinValue: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const submitTimerRef = useRef(null);
+  const [apiError, setApiError] = useState("");
 
-  useEffect(() => {
-    return () => {
-      if (submitTimerRef.current) {
-        window.clearTimeout(submitTimerRef.current);
-      }
-    };
-  }, []);
-
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
     const nextErrors = {
-      staffIdValue: staffIdValue.trim() ? "" : "Account number is required",
+      staffIdValue: staffIdValue.trim() ? "" : "Staff ID is required",
       pinValue: pinValue.trim() ? "" : "PIN is required",
     };
 
     setErrors(nextErrors);
+    setApiError("");
 
     if (nextErrors.staffIdValue || nextErrors.pinValue) {
       return;
     }
 
     setIsSubmitting(true);
-    submitTimerRef.current = window.setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      await adminLogin(staffIdValue.trim(), pinValue);
       navigate("/admin");
-    }, 800);
+    } catch (err) {
+      setApiError(err.message || "Login failed. Check your credentials.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -127,26 +124,16 @@ export default function AdminLogin() {
             </label>
 
             <div className="flex items-center justify-between gap-4 pt-1">
-              <label className="inline-flex items-center gap-2 text-sm text-on-surface-variant cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(event) => setRememberMe(event.target.checked)}
-                  className="h-4 w-4 rounded border-outline-variant text-primary focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-surface-lowest"
-                />
-                Remember Me
-              </label>
-              <button
-                type="button"
-                className="text-sm font-semibold text-primary hover:underline focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-surface-lowest rounded-sm"
-              >
-                Forgot Password?
-              </button>
+              <span />
             </div>
 
             <Button type="submit" className="w-full uppercase tracking-[0.16em] justify-center" disabled={isSubmitting}>
               {isSubmitting ? "Logging in..." : "Log In"}
             </Button>
+
+            {apiError && (
+              <p className="text-xs font-semibold text-error text-center mt-3">{apiError}</p>
+            )}
           </form>
 
           <div className="my-6 h-px bg-outline-variant" />

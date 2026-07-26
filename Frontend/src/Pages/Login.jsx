@@ -5,6 +5,7 @@ import Shell from "../Components/Shell";
 import Card from "../Components/Card";
 import Button from "../Components/Button";
 import IconBadge from "../Components/IconBadge";
+import { login } from "../api";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -14,17 +15,9 @@ export default function Login() {
   const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState({ accountValue: "", pinValue: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const submitTimerRef = useRef(null);
+  const [apiError, setApiError] = useState("");
 
-  useEffect(() => {
-    return () => {
-      if (submitTimerRef.current) {
-        window.clearTimeout(submitTimerRef.current);
-      }
-    };
-  }, []);
-
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
     const nextErrors = {
@@ -33,16 +26,21 @@ export default function Login() {
     };
 
     setErrors(nextErrors);
+    setApiError("");
 
     if (nextErrors.accountValue || nextErrors.pinValue) {
       return;
     }
 
     setIsSubmitting(true);
-    submitTimerRef.current = window.setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      await login(accountValue.trim(), pinValue, rememberMe);
       navigate("/dashboard");
-    }, 800);
+    } catch (err) {
+      setApiError(err.message || "Login failed. Check your credentials.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -148,6 +146,10 @@ export default function Login() {
             <Button type="submit" className="w-full uppercase tracking-[0.16em] justify-center" disabled={isSubmitting}>
               {isSubmitting ? "Logging in..." : "Log In"}
             </Button>
+
+            {apiError && (
+              <p className="text-xs font-semibold text-error text-center mt-3">{apiError}</p>
+            )}
           </form>
 
           <div className="my-6 h-px bg-outline-variant" />

@@ -1,14 +1,20 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Wifi, AlertTriangle, CheckCircle2, ShieldOff, ShieldCheck } from "lucide-react";
 import Shell from "../Components/Shell";
 import Card from "../Components/Card";
 import Button from "../Components/Button";
 import Chip from "../Components/Chip";
 import PhoneSmsPreview from "../Components/PhoneSmsPreview";
-import { cards as initialCards, customer } from "../Data/mockData";
+import { getCards, blockCard, unblockCard, getStoredCustomer } from "../api";
 
 export default function BlockCard() {
-  const [cards, setCards] = useState(initialCards);
+  const [cards, setCards] = useState([]);
+  const [loaded, setLoaded] = useState(false);
+  const cust = getStoredCustomer();
+
+  useEffect(() => {
+    getCards().then(setCards).catch(() => {}).finally(() => setLoaded(true));
+  }, []);
   const [selectedId, setSelectedId] = useState(null);
   const [confirming, setConfirming] = useState(false);
   const [toast, setToast] = useState(null);
@@ -22,9 +28,15 @@ export default function BlockCard() {
   };
 
   const handleConfirm = () => {
+    const newStatus = selected?.status === "Active" ? "Blocked" : "Active";
+    if (newStatus === "Blocked") {
+      blockCard(selectedId).catch(() => {});
+    } else {
+      unblockCard(selectedId).catch(() => {});
+    }
     setCards((prev) =>
       prev.map((c) =>
-        c.id === selectedId ? { ...c, status: c.status === "Active" ? "Blocked" : "Active" } : c
+        c.id === selectedId ? { ...c, status: newStatus } : c
       )
     );
     const wasActive = selected?.status === "Active";
@@ -125,7 +137,7 @@ export default function BlockCard() {
             <p className="text-xs text-on-surface-variant leading-relaxed">
               Blocking a card stops all new transactions immediately, including recurring payments.
               You can unblock it any time, right from this screen — no branch visit needed. Reported
-              your card lost or stolen for good? Contact <a href={`tel:${customer.phone.replace(/\s/g, "")}`} className="font-semibold text-primary hover:underline">{customer.phone}</a> support to request a replacement.
+              your card lost or stolen for good? Contact <a href={`tel:${cust?.phone || "+265 1 820 622".replace(/\s/g, "")}`} className="font-semibold text-primary hover:underline">{cust?.phone || "+265 1 820 622"}</a> support to request a replacement.
             </p>
           </Card>
         )}
