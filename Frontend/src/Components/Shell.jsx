@@ -7,6 +7,7 @@ import { TopBarActions, MobileHeader } from "./TopBar";
 const navItems = [
   { to: "/dashboard", label: "Dashboard" },
   { to: "/activity", label: "Activity" },
+  { to: "/alerts", label: "Alerts" },
   { to: "/security", label: "Security" },
   { to: "/payment-approval", label: "Payment Approval" },
   { to: "/ussd-demo", label: "USSD Demo" },

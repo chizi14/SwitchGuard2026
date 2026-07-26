@@ -5,6 +5,7 @@ import Login from "./Pages/Login";
 import CustomerDashboard from "./Pages/CustomerDashboard";
 import BlockCard from "./Pages/BlockCard";
 import SecurityAlert from "./Pages/SecurityAlert";
+import Alerts from "./Pages/Alerts";
 import ReversalDetail from "./Pages/ReversalDetail";
 import PaymentApproval from "./Pages/PaymentApproval";
 import AdminDashboard from "./Pages/AdminDashboard";
@@ -29,6 +30,7 @@ export default function App() {
             <Route path="/dashboard" element={<CustomerDashboard />} />
             <Route path="/security" element={<BlockCard />} />
             <Route path="/security/alert" element={<SecurityAlert />} />
+            <Route path="/alerts" element={<Alerts />} />
             <Route path="/activity" element={<ReversalDetail />} />
             <Route path="/payment-approval" element={<PaymentApproval />} />
             <Route path="/admin" element={<AdminDashboard />} />

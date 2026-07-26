@@ -88,7 +88,44 @@ export const securityAlert = {
   status: "Needs Review",
   reason:
     "Two withdrawals detected in different cities 6 minutes apart. This distance is physically impossible to travel in that time.",
+  distanceKm: 320,
+  minutesApart: 6,
+  maxRealisticSpeedKmh: 120,
+  riskScore: 94,
+  detectionMs: 340,
 };
+
+
+export const alertHistory = [
+  {
+    id: "al-1",
+    title: "Impossible travel — Lilongwe ATM",
+    detail: "Withdrawal flagged 320km from last known location, 6 minutes apart.",
+    time: "Today, 10:42 AM",
+    status: "Needs Review",
+  },
+  {
+    id: "al-2",
+    title: "Card-not-present spike",
+    detail: "3 online purchases in 2 minutes, all above usual spend pattern.",
+    time: "Yesterday, 6:15 PM",
+    status: "Reversed",
+  },
+  {
+    id: "al-3",
+    title: "New device login",
+    detail: "Login to mobile banking from a device not seen before.",
+    time: "Mon, 8:03 AM",
+    status: "Active",
+  },
+  {
+    id: "al-4",
+    title: "Dispense error — Blantyre Main",
+    detail: "ATM failed to dispense after debit; auto-reversed in 50 seconds.",
+    time: "Jul 21, 2:15 PM",
+    status: "Reversed",
+  },
+];
 
 export const pendingPayments = [
   { id: "pp-1", merchant: "Amazon Purchase", type: "One-time purchase", amount: 42000, cardId: "card-1", urgent: true, countdown: 45 },

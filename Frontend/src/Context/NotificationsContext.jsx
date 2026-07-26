@@ -59,8 +59,20 @@ export function NotificationsProvider({ children }) {
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
+  // Lets a page (e.g. Alerts) push a brand-new notification onto the bell
+  // in real time, so an action taken on one screen is immediately visible
+  // on another — nice for a live demo.
+  const addNotification = (notification) => {
+    setNotifications((prev) => [
+      { id: `n${Date.now()}`, read: false, time: "Just now", ...notification },
+      ...prev,
+    ]);
+  };
+
   return (
-    <NotificationsContext.Provider value={{ notifications, markAllRead, markRead, unreadCount }}>
+    <NotificationsContext.Provider
+      value={{ notifications, markAllRead, markRead, unreadCount, addNotification }}
+    >
       {children}
     </NotificationsContext.Provider>
   );
