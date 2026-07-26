@@ -4,7 +4,8 @@ import { ArrowLeft, CheckCircle2, AlertCircle, ShieldCheck, UserCheck, RotateCcw
 import Shell from "../Components/Shell";
 import Card from "../Components/Card";
 import Button from "../Components/Button";
-import { reversalDetail, currency } from "../Data/mockData";
+import PhoneSmsPreview from "../Components/PhoneSmsPreview";
+import { reversalDetail, currency, customer } from "../Data/mockData";
 
 const iconFor = {
   deducted: CheckCircle2,
@@ -16,6 +17,88 @@ const iconFor = {
 };
 
 const STEP_DELAY_MS = 900;
+
+function downloadReceiptImage(detail) {
+  const canvas = document.createElement("canvas");
+  canvas.width = 720;
+  canvas.height = 900;
+  const ctx = canvas.getContext("2d");
+
+  // Background
+  ctx.fillStyle = "#F8F9FA";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Header band
+  ctx.fillStyle = "#000519";
+  ctx.fillRect(0, 0, canvas.width, 160);
+  ctx.fillStyle = "#FFFFFF";
+  ctx.font = "bold 34px Arial";
+  ctx.fillText("SwitchGuard", 40, 70);
+  ctx.font = "16px Arial";
+  ctx.fillStyle = "#C5CBE0";
+  ctx.fillText("ATM Transaction Receipt", 40, 100);
+  ctx.fillStyle = "#FFCE51";
+  ctx.font = "bold 15px Arial";
+  ctx.fillText("REVERSAL SUCCESSFUL", 40, 135);
+
+  // Body rows
+  const rows = [
+    ["Transaction ID", detail.transactionId],
+    ["ATM Location", detail.atmLocation],
+    ["Amount", currency(detail.amount)],
+    ["Original Timestamp", detail.originalTimestamp],
+    ["Reversed On", detail.reversedOn],
+  ];
+  let y = 230;
+  ctx.font = "14px Arial";
+  rows.forEach(([label, value]) => {
+    ctx.fillStyle = "#44464F";
+    ctx.font = "13px Arial";
+    ctx.fillText(label.toUpperCase(), 40, y);
+    ctx.fillStyle = "#191C1D";
+    ctx.font = "bold 20px Arial";
+    ctx.fillText(String(value), 40, y + 28);
+    ctx.strokeStyle = "#E1E3E4";
+    ctx.beginPath();
+    ctx.moveTo(40, y + 50);
+    ctx.lineTo(680, y + 50);
+    ctx.stroke();
+    y += 90;
+  });
+
+  // Timeline
+  ctx.fillStyle = "#191C1D";
+  ctx.font = "bold 18px Arial";
+  ctx.fillText("Process Timeline", 40, y + 20);
+  y += 55;
+  detail.timeline.forEach((step) => {
+    ctx.fillStyle = "#0E996B";
+    ctx.beginPath();
+    ctx.arc(50, y - 6, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#191C1D";
+    ctx.font = "bold 14px Arial";
+    ctx.fillText(step.title, 70, y);
+    ctx.fillStyle = "#44464F";
+    ctx.font = "12px Arial";
+    ctx.fillText(step.time, 620, y);
+    y += 32;
+  });
+
+  // Footer
+  ctx.fillStyle = "#8A8D97";
+  ctx.font = "11px Arial";
+  ctx.fillText("FINOVATE 2026 Hackathon Prototype — Simulated Receipt", 40, canvas.height - 30);
+
+  canvas.toBlob((blob) => {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `switchguard-receipt-${detail.transactionId}.png`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }, "image/png");
+}
 
 export default function ReversalDetail() {
   const navigate = useNavigate();
@@ -112,7 +195,7 @@ export default function ReversalDetail() {
               </div>
             </dl>
 
-            <Button variant="primary" icon={Download} className="w-full mt-6" onClick={() => window.print()}>
+            <Button variant="primary" icon={Download} className="w-full mt-6" onClick={() => downloadReceiptImage(reversalDetail)}>
               Download receipt
             </Button>
           </Card>
@@ -127,6 +210,15 @@ export default function ReversalDetail() {
                 to belong to this account. No manual dispute was needed.
               </p>
             </div>
+          </Card>
+
+          <Card>
+            <p className="text-sm font-bold text-on-surface mb-4 text-center">What the customer receives</p>
+            <PhoneSmsPreview
+              visible={complete}
+              time={complete ? reversalDetail.timeline[totalSteps - 1].time : ""}
+              message={`SwitchGuard: ${currency(reversalDetail.amount)} has been returned to your account ending ${customer.accountNumber.slice(-4)}. Ref ${reversalDetail.transactionId}.`}
+            />
           </Card>
         </div>
 

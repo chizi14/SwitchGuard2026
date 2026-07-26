@@ -1,11 +1,12 @@
 import { NavLink } from "react-router-dom";
-import { LayoutGrid, Activity, ShieldAlert, ShieldCheck, Phone } from "lucide-react";
+import { LayoutGrid, Activity, ShieldAlert, ShieldCheck, CreditCard, Phone } from "lucide-react";
 
 const navItems = [
-  { to: "/dashboard", label: "Dashboard", icon: LayoutGrid },
+  { to: "/dashboard", label: "Home", icon: LayoutGrid },
   { to: "/activity", label: "Activity", icon: Activity },
   { to: "/alerts", label: "Alerts", icon: ShieldAlert },
   { to: "/security", label: "Security", icon: ShieldCheck },
+  { to: "/payment-approval", label: "Payments", icon: CreditCard },
   { to: "/ussd-demo", label: "USSD", icon: Phone },
 ];
 

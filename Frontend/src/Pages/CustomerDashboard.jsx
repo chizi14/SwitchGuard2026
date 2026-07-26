@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import {
   ArrowRight,
   Banknote,
@@ -7,9 +9,6 @@ import {
   ChevronRight,
   CreditCard,
   Eye,
-  Minus,
-  Plus,
-  RotateCcw,
   ShieldCheck,
   Sparkles,
   Smartphone,
@@ -66,12 +65,6 @@ const securityTips = [
     tone: "neutral",
   },
 ];
-
-const malawiOutline =
-  "M62 6 L69 11 L73 18 L75 27 L74 37 L71 46 L74 54 L72 64 L68 73 L62 83 L57 92 L51 95 L46 89 L43 80 L39 72 L36 65 L34 57 L31 49 L29 41 L27 34 L28 26 L31 19 L36 13 L42 9 L49 7 Z";
-
-const lakeMalawiCut =
-  "M70 14 L76 18 L80 26 L81 36 L79 46 L77 56 L73 66 L69 76 L64 85 L59 93 L56 94 L58 84 L61 75 L64 65 L66 55 L67 45 L66 35 L65 25 L66 17 Z";
 
 function TransactionRow({ transaction }) {
   const TransactionIcon = transactionIcons[transaction.icon] || Wallet;
@@ -402,209 +395,129 @@ function DashboardModal({ panel, onClose, onConfirmBlock, blockConfirmed, select
   );
 }
 
+// Real coordinates for login-history cities (same map style as Alerts)
+const CITY_COORDS = {
+  Blantyre: [-15.7861, 35.0058],
+  Lilongwe: [-13.9626, 33.7741],
+  Mzuzu: [-11.4587, 34.0151],
+};
+
+function dotIcon(color) {
+  return L.divIcon({
+    className: "",
+    html: `<span style="display:block;width:14px;height:14px;border-radius:9999px;background:${color};border:3px solid #ffffff;box-shadow:0 1px 4px rgba(0,0,0,0.35)"></span>`,
+    iconSize: [14, 14],
+    iconAnchor: [7, 7],
+  });
+}
+
 function MalawiActivityMap() {
-  const gestureRef = useRef({});
-  const [scale, setScale] = useState(1);
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const containerRef = useRef(null);
+  const mapRef = useRef(null);
   const [activePin, setActivePin] = useState(null);
-  const [hoveredPin, setHoveredPin] = useState(null);
-
-  const clampScale = (value) => Math.min(2.4, Math.max(1, value));
-
-  const applyScale = (nextScale) => {
-    setScale(clampScale(nextScale));
-  };
-
-  const resetMap = () => {
-    setScale(1);
-    setOffset({ x: 0, y: 0 });
-    setActivePin(null);
-  };
-
-  const handleWheel = (event) => {
-    event.preventDefault();
-    const delta = event.deltaY > 0 ? -0.1 : 0.1;
-    applyScale(scale + delta);
-  };
-
-  const handlePointerDown = (event) => {
-    event.currentTarget.setPointerCapture(event.pointerId);
-    gestureRef.current.pointers = new Map([[event.pointerId, { x: event.clientX, y: event.clientY }]]);
-    gestureRef.current.mode = "pan";
-    gestureRef.current.startOffset = offset;
-    gestureRef.current.startScale = scale;
-    gestureRef.current.startX = event.clientX;
-    gestureRef.current.startY = event.clientY;
-    gestureRef.current.startDistance = null;
-  };
-
-  const updatePointer = (event) => {
-    const pointers = gestureRef.current.pointers ?? new Map();
-    pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
-    gestureRef.current.pointers = pointers;
-  };
-
-  const handlePointerMove = (event) => {
-    const pointers = gestureRef.current.pointers;
-    if (!pointers || !pointers.has(event.pointerId)) {
-      return;
-    }
-
-    updatePointer(event);
-
-    if (pointers.size === 1 && gestureRef.current.mode === "pan") {
-      setOffset({
-        x: gestureRef.current.startOffset.x + (event.clientX - gestureRef.current.startX),
-        y: gestureRef.current.startOffset.y + (event.clientY - gestureRef.current.startY),
-      });
-      return;
-    }
-
-    if (pointers.size >= 2) {
-      const [first, second] = Array.from(pointers.values());
-      const currentDistance = Math.hypot(second.x - first.x, second.y - first.y);
-
-      if (!gestureRef.current.startDistance) {
-        gestureRef.current.startDistance = currentDistance;
-        gestureRef.current.startScale = scale;
-      }
-
-      applyScale(gestureRef.current.startScale * (currentDistance / gestureRef.current.startDistance));
-    }
-  };
-
-  const handlePointerUp = (event) => {
-    const pointers = gestureRef.current.pointers ?? new Map();
-    pointers.delete(event.pointerId);
-    gestureRef.current.pointers = pointers;
-
-    if (pointers.size === 1) {
-      const remainingPointer = Array.from(pointers.values())[0];
-      gestureRef.current.mode = "pan";
-      gestureRef.current.startX = remainingPointer.x;
-      gestureRef.current.startY = remainingPointer.y;
-      gestureRef.current.startOffset = offset;
-      gestureRef.current.startScale = scale;
-      gestureRef.current.startDistance = null;
-      return;
-    }
-
-    gestureRef.current.mode = "idle";
-    gestureRef.current.startDistance = null;
-  };
 
   useEffect(() => {
-    if (gestureRef.current.mode !== "pan" || !gestureRef.current.pointers || gestureRef.current.pointers.size !== 1) {
-      return;
+    if (!containerRef.current || mapRef.current) return;
+
+    const map = L.map(containerRef.current, {
+      zoomControl: true,
+      scrollWheelZoom: false,
+      attributionControl: true,
+    });
+    mapRef.current = map;
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    }).addTo(map);
+
+    const points = loginHistory
+      .map((pin) => {
+        const coords = CITY_COORDS[pin.city];
+        if (!coords) return null;
+        return { ...pin, coords };
+      })
+      .filter(Boolean);
+
+    if (points.length >= 2) {
+      L.polyline(
+        points.map((p) => p.coords),
+        { color: "#9aa0ac", weight: 3, dashArray: "6 8" }
+      ).addTo(map);
     }
 
-    const [pointer] = Array.from(gestureRef.current.pointers.values());
-    gestureRef.current.startX = pointer.x;
-    gestureRef.current.startY = pointer.y;
-    gestureRef.current.startOffset = offset;
-    gestureRef.current.startScale = scale;
-  }, [offset, scale]);
+    points.forEach((pin, i) => {
+      const color = i === 0 ? "#000519" : i === points.length - 1 ? "#775a00" : "#7185bd";
+      const marker = L.marker(pin.coords, { icon: dotIcon(color) }).addTo(map);
+      marker.bindPopup(
+        `<strong>${pin.city}</strong><br/>${pin.region}<br/><span style="opacity:.75">${pin.timestamp}</span>`
+      );
+      marker.on("click", () => setActivePin(pin.city));
+    });
+
+    if (points.length) {
+      map.fitBounds(L.latLngBounds(points.map((p) => p.coords)), { padding: [40, 40] });
+    }
+
+    return () => {
+      map.remove();
+      mapRef.current = null;
+    };
+  }, []);
+
+  const home = loginHistory[0];
+  const latest = loginHistory[loginHistory.length - 1];
 
   return (
     <Card>
       <div className="flex items-start justify-between gap-3 mb-4">
         <div>
-          <p className="text-xs font-bold tracking-[0.18em] uppercase text-on-surface-variant">Recent Activity Map</p>
+          <p className="text-xs font-bold tracking-[0.18em] uppercase text-on-surface-variant">
+            Recent Activity Map
+          </p>
           <h2 className="mt-1 text-lg font-bold text-on-surface">Login history</h2>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" className="h-10 w-10 px-0" aria-label="Zoom out" onClick={() => applyScale(scale - 0.15)}>
-            <Minus size={16} />
-          </Button>
-          <Button variant="outline" className="h-10 w-10 px-0" aria-label="Reset map" onClick={resetMap}>
-            <RotateCcw size={16} />
-          </Button>
-          <Button variant="outline" className="h-10 w-10 px-0" aria-label="Zoom in" onClick={() => applyScale(scale + 0.15)}>
-            <Plus size={16} />
-          </Button>
         </div>
       </div>
 
-      <div className="rounded-lg border border-outline-variant bg-surface-low overflow-hidden">
+      <div className="relative isolate">
         <div
-          className="relative h-72 sm:h-80 touch-none select-none overflow-hidden"
-          style={{ touchAction: "none" }}
-          onWheel={handleWheel}
-          onPointerDown={handlePointerDown}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerUp}
-          onPointerCancel={handlePointerUp}
-          onPointerLeave={(event) => {
-            if (gestureRef.current.mode === "pan") {
-              handlePointerUp(event);
-            }
-          }}
-        >
-          <div
-            className="relative h-full w-full origin-center transition-transform duration-75 ease-out"
-            style={{
-              transform: `translate3d(${offset.x}px, ${offset.y}px, 0) scale(${scale})`,
-            }}
-          >
-            <svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full">
-              <defs>
-                <linearGradient id="malawiMapGlow" x1="0%" x2="100%" y1="0%" y2="100%">
-                  <stop offset="0%" stopColor="rgb(var(--c-surface-lowest))" />
-                  <stop offset="100%" stopColor="rgb(var(--c-surface-container))" />
-                </linearGradient>
-              </defs>
-              <rect x="0" y="0" width="100" height="100" fill="url(#malawiMapGlow)" />
-              <path
-                d={malawiOutline}
-                className="fill-surface-container stroke-outline"
-                strokeWidth="1.4"
-                strokeLinejoin="round"
-              />
-              <path
-                d={lakeMalawiCut}
-                fill="rgb(var(--c-surface-lowest))"
-                className="stroke-outline-variant"
-                strokeWidth="1.2"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M61 10 L63 20 L64 30 L64 41 L63 52 L61 63 L59 73 L56 82 L54 90"
-                fill="none"
-                className="stroke-primary/25"
-                strokeWidth="1"
-                strokeDasharray="2 2"
-              />
-            </svg>
-
-            {loginHistory.map((pin) => {
-              const isActive = activePin === pin.city || hoveredPin === pin.city;
-
-              return (
-                <button
-                  key={pin.city}
-                  type="button"
-                  className="absolute z-10 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-secondary-container shadow-soft ring-2 ring-secondary-container transition-transform hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary-container focus-visible:ring-offset-2 focus-visible:ring-offset-surface-lowest"
-                  style={{ left: `${pin.coordinates.x}%`, top: `${pin.coordinates.y}%` }}
-                  aria-label={`${pin.city}, ${pin.region} - ${pin.timestamp}`}
-                  onMouseEnter={() => setHoveredPin(pin.city)}
-                  onMouseLeave={() => setHoveredPin(null)}
-                  onFocus={() => setHoveredPin(pin.city)}
-                  onBlur={() => setHoveredPin(null)}
-                  onClick={() => setActivePin((current) => (current === pin.city ? null : pin.city))}
-                >
-                  <span className="absolute inset-0 rounded-full bg-secondary-container opacity-40 animate-ping" />
-                  {isActive && (
-                    <div className="pointer-events-none absolute left-1/2 top-0 z-20 -translate-x-1/2 -translate-y-full rounded-md border border-outline-variant bg-surface-lowest px-3 py-2 text-left shadow-soft w-40">
-                      <p className="text-sm font-semibold text-on-surface">{pin.city}</p>
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-secondary">{pin.region}</p>
-                      <p className="mt-1 text-xs text-on-surface-variant">{pin.timestamp}</p>
-                    </div>
-                  )}
-                </button>
-              );
-            })}
+          ref={containerRef}
+          className="switchguard-map w-full h-72 sm:h-80 rounded-md overflow-hidden border border-outline-variant"
+        />
+        {home && (
+          <div className="absolute bottom-3 left-3 bg-surface-lowest rounded px-2.5 py-1.5 shadow-soft pointer-events-none">
+            <p className="text-[10px] font-semibold text-on-surface-variant">HOME CITY</p>
+            <p className="text-xs font-bold text-on-surface">{home.city}</p>
           </div>
-        </div>
+        )}
+        {latest && latest.city !== home?.city && (
+          <div className="absolute top-3 right-3 bg-surface-lowest rounded px-2.5 py-1.5 shadow-soft pointer-events-none">
+            <p className="text-[10px] font-semibold text-secondary">LATEST LOGIN</p>
+            <p className="text-xs font-bold text-on-surface">{latest.city}</p>
+          </div>
+        )}
+      </div>
+
+      <div className="mt-4 space-y-2">
+        {loginHistory.map((pin) => (
+          <button
+            key={pin.city}
+            type="button"
+            onClick={() => setActivePin(pin.city)}
+            className={`w-full flex items-center justify-between gap-3 rounded-md border px-3 py-2.5 text-left transition-colors ${
+              activePin === pin.city
+                ? "border-primary bg-primary-container/5"
+                : "border-outline-variant bg-surface-lowest hover:bg-surface-container"
+            }`}
+          >
+            <div>
+              <p className="text-sm font-semibold text-on-surface">{pin.city}</p>
+              <p className="text-[11px] text-on-surface-variant">{pin.region}</p>
+            </div>
+            <p className="text-xs text-on-surface-variant shrink-0">{pin.timestamp}</p>
+          </button>
+        ))}
       </div>
     </Card>
   );

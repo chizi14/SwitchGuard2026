@@ -10,6 +10,7 @@ const navItems = [
   { to: "/activity", label: "Activity" },
   { to: "/alerts", label: "Alerts" },
   { to: "/security", label: "Security" },
+  { to: "/payment-approval", label: "Payments" },
   { to: "/ussd-demo", label: "USSD Demo" },
 ];
 

@@ -4,6 +4,7 @@ import Shell from "../Components/Shell";
 import Card from "../Components/Card";
 import Button from "../Components/Button";
 import Chip from "../Components/Chip";
+import PhoneSmsPreview from "../Components/PhoneSmsPreview";
 import { cards as initialCards, customer } from "../Data/mockData";
 
 export default function BlockCard() {
@@ -11,6 +12,7 @@ export default function BlockCard() {
   const [selectedId, setSelectedId] = useState(null);
   const [confirming, setConfirming] = useState(false);
   const [toast, setToast] = useState(null);
+  const [lastSms, setLastSms] = useState(null);
 
   const selected = cards.find((c) => c.id === selectedId);
 
@@ -26,6 +28,11 @@ export default function BlockCard() {
       )
     );
     const wasActive = selected?.status === "Active";
+    const last4 = selected?.last4 ?? "****";
+    const sms = wasActive
+      ? `SwitchGuard: Your card ending ${last4} has been blocked. No new transactions can be made. Reply HELP for support.`
+      : `SwitchGuard: Your card ending ${last4} has been unblocked and is ready to use.`;
+    setLastSms(sms);
     setToast(wasActive ? "Card blocked. No new transactions can be made." : "Card unblocked and ready to use.");
     setConfirming(false);
     setSelectedId(null);
@@ -81,7 +88,7 @@ export default function BlockCard() {
         </div>
 
         {confirming && selected && (
-          <Card className="text-center py-8 border-2 border-secondary-container">
+          <Card className="text-center py-8 border-2 border-secondary-container mb-6">
             <div
               className={`w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4 ${
                 selected.status === "Active" ? "bg-error-container" : "bg-tertiary-container/20"
@@ -113,7 +120,7 @@ export default function BlockCard() {
         )}
 
         {!confirming && (
-          <Card className="flex items-start gap-3 bg-surface-low">
+          <Card className="flex items-start gap-3 bg-surface-low mb-6">
             <AlertTriangle size={18} className="text-secondary shrink-0 mt-0.5" />
             <p className="text-xs text-on-surface-variant leading-relaxed">
               Blocking a card stops all new transactions immediately, including recurring payments.
@@ -122,6 +129,21 @@ export default function BlockCard() {
             </p>
           </Card>
         )}
+
+        {/* Phone SMS preview — shows after block/unblock */}
+        <Card>
+          <p className="text-sm font-bold text-on-surface mb-4 text-center">What the customer receives</p>
+          <PhoneSmsPreview
+            visible={!!lastSms}
+            time="now"
+            message={lastSms || "Block or unblock a card above to see the confirmation SMS."}
+          />
+          {!lastSms && (
+            <p className="text-xs text-on-surface-variant text-center mt-3">
+              Confirm a block or unblock to see the SMS arrive on the customer's phone.
+            </p>
+          )}
+        </Card>
 
         {toast && (
           <div className="fixed bottom-24 lg:bottom-8 left-1/2 -translate-x-1/2 bg-on-surface text-white text-sm font-medium px-5 py-3 rounded-full shadow-soft-hover flex items-center gap-2 z-40">
