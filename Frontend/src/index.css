@@ -16,6 +16,13 @@
   --c-outline-variant: 197 198 209;
   --c-background: 248 249 250;
   --c-on-background: 25 28 29;
+
+  /* Primary brand color — near-black navy, works as a solid fill on
+  light surfaces. Dark mode overrides this below. */
+  --c-primary: 0 5 25;
+  --c-on-primary: 255 255 255;
+  --c-primary-container: 0 27 78;
+  --c-on-primary-container: 113 133 189;
 }
 
 html.dark {
@@ -32,6 +39,15 @@ html.dark {
   --c-outline-variant: 68 71 79;
   --c-background: 14 16 18;
   --c-on-background: 230 231 233;
+
+  /* Dark-mode primary uses the lighter blue tones from DESIGN.md
+  (inverse-primary / primary-fixed family) instead of the near-black
+  navy, so buttons, the active toggle, and the active nav tab are
+  actually visible against a near-black background. */
+  --c-primary: 178 197 255;
+  --c-on-primary: 0 24 72;
+  --c-primary-container: 48 69 121;
+  --c-on-primary-container: 218 226 255;
 }
 
 html, body {

@@ -1,5 +1,5 @@
 const variants = {
-  primary: "bg-primary text-on-primary hover:bg-black",
+  primary: "bg-primary text-on-primary hover:opacity-90",
   secondary: "bg-secondary-container text-on-secondary-container hover:brightness-95",
   ghost: "bg-transparent text-primary border border-primary/20 hover:bg-surface-container",
   outline: "bg-surface-lowest text-on-surface border border-outline-variant hover:bg-surface-low",

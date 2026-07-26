@@ -25,12 +25,15 @@ export default {
         background: "rgb(var(--c-background) / <alpha-value>)",
         "on-background": "rgb(var(--c-on-background) / <alpha-value>)",
 
-        // Brand/functional colors stay constant across light and dark —
-        // standard practice, and they already have safe contrast built in.
-        primary: "#000519",
-        "primary-container": "#001b4e",
-        "on-primary": "#ffffff",
-        "on-primary-container": "#7185bd",
+        // Primary is dark-mode-aware (wired to CSS variables below) because
+        // it's used as a solid fill (buttons, active toggle, active nav tab).
+        // A near-black navy fill disappears against a near-black dark-mode
+        // surface, so dark mode swaps it for the lighter blue tones already
+        // defined in DESIGN.md (inverse-primary / primary-fixed family).
+        primary: "rgb(var(--c-primary) / <alpha-value>)",
+        "primary-container": "rgb(var(--c-primary-container) / <alpha-value>)",
+        "on-primary": "rgb(var(--c-on-primary) / <alpha-value>)",
+        "on-primary-container": "rgb(var(--c-on-primary-container) / <alpha-value>)",
         secondary: "#775a00",
         "secondary-container": "#ffce51",
         "on-secondary": "#ffffff",
