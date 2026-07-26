@@ -22,14 +22,7 @@ import Button from "../Components/Button";
 import Chip from "../Components/Chip";
 import IconBadge from "../Components/IconBadge";
 import Carousel from "../Components/Carousel";
-import {
-  currency,
-  customerBalance,
-  customerCards,
-  customerTransactions,
-  loginHistory,
-  carouselSlides,
-} from "../Data/mockData";
+import { getBalance, getCards, getTransactions, getAlerts, currency } from "../api";
 
 const quickActions = [
   { label: "Block Card", icon: CreditCard, panel: "block" },
@@ -95,7 +88,7 @@ function DashboardModal({ panel, onClose, onConfirmBlock, blockConfirmed, select
   const [cardView, setCardView] = useState("detail");
   const blockTargetLabel = "****5829";
   const reversedTransactions = useMemo(
-    () => customerTransactions.filter((transaction) => transaction.status === "Reversed"),
+    () => transactions.filter((transaction) => transaction.status === "Reversed"),
     []
   );
 
@@ -270,7 +263,7 @@ function DashboardModal({ panel, onClose, onConfirmBlock, blockConfirmed, select
 
             {panel === "activity" && (
               <div className="divide-y divide-outline-variant max-h-[60vh] overflow-y-auto">
-                {customerTransactions.map((transaction) => (
+                {transactions.map((transaction) => (
                   <TransactionRow key={transaction.id} transaction={transaction} />
                 ))}
               </div>
@@ -432,7 +425,7 @@ function MalawiActivityMap() {
         '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(map);
 
-    const points = loginHistory
+    const points = loginRecords.length ? loginRecords : []
       .map((pin) => {
         const coords = CITY_COORDS[pin.city];
         if (!coords) return null;
@@ -466,8 +459,8 @@ function MalawiActivityMap() {
     };
   }, []);
 
-  const home = loginHistory[0];
-  const latest = loginHistory[loginHistory.length - 1];
+  const home = loginRecords.length ? loginRecords : [][0];
+  const latest = loginRecords.length ? loginRecords : [][loginRecords.length ? loginRecords : [].length - 1];
 
   return (
     <Card>
@@ -500,7 +493,7 @@ function MalawiActivityMap() {
       </div>
 
       <div className="mt-4 space-y-2">
-        {loginHistory.map((pin) => (
+        {loginRecords.length ? loginRecords : [].map((pin) => (
           <button
             key={pin.city}
             type="button"
@@ -524,12 +517,40 @@ function MalawiActivityMap() {
 }
 
 export default function CustomerDashboard() {
+  const [balance, setBalance] = useState(null);
+  const [cards, setCards] = useState([]);
+  const [transactions, setTransactions] = useState([]);
+  const [loginRecords, setLoginRecords] = useState([]);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([
+      getBalance().catch(() => null),
+      getCards().catch(() => []),
+      getTransactions(1, 50).catch(() => ({ transactions: [] })),
+      getAlerts().catch(() => []),
+    ]).then(([bal, cardList, txnData, alerts]) => {
+      if (cancelled) return;
+      setBalance(bal);
+      setCards(Array.isArray(cardList) ? cardList : []);
+      setTransactions(txnData?.transactions || []);
+      // Convert alerts to login-history-like records
+      setLoginRecords(alerts.map((a, i) => ({
+        city: a.flaggedCity || a.homeCity,
+        region: a.flaggedCity + " Region",
+        timestamp: a.time,
+        coordinates: { x: 46 + i * 5, y: 74 - i * 16 },
+      })).slice(0, 3));
+      setLoaded(true);
+    });
+    return () => { cancelled = true; };
+  }, []);
   const navigate = useNavigate();
   const [activePanel, setActivePanel] = useState(null);
   const [blockConfirmed, setBlockConfirmed] = useState(false);
   const [statusMessage, setStatusMessage] = useState(null);
   const [selectedCard, setSelectedCard] = useState(null);
-  const [cards, setCards] = useState(customerCards);
 
   const openPanel = (panel) => setActivePanel(panel);
   const closePanel = () => {
@@ -654,7 +675,7 @@ export default function CustomerDashboard() {
               </div>
 
               <div className="divide-y divide-outline-variant">
-                {customerTransactions.map((transaction) => (
+                {transactions.map((transaction) => (
                   <TransactionRow key={transaction.id} transaction={transaction} />
                 ))}
               </div>
@@ -666,9 +687,9 @@ export default function CustomerDashboard() {
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-xs font-bold tracking-[0.18em] uppercase text-on-primary/60">Total Balance</p>
-                  <p className="mt-3 text-3xl font-bold text-on-primary">{currency(customerBalance.amount)}</p>
-                  <p className="mt-3 text-sm text-on-primary/70">{customerBalance.accountNumber}</p>
-                  <p className="mt-4 text-xs uppercase tracking-[0.14em] text-on-primary/50">Updated {customerBalance.lastUpdated}</p>
+                  <p className="mt-3 text-3xl font-bold text-on-primary">{currency(balance?.amount ?? 0)}</p>
+                  <p className="mt-3 text-sm text-on-primary/70">{balance?.accountNumber ?? '**** **** 5829'}</p>
+                  <p className="mt-4 text-xs uppercase tracking-[0.14em] text-on-primary/50">Updated {balance?.lastUpdated ?? ''}</p>
                 </div>
                 <div className="w-12 h-12 rounded-2xl bg-on-primary/10 flex items-center justify-center shrink-0">
                   <div className="grid grid-cols-2 gap-1.5">
@@ -746,7 +767,11 @@ export default function CustomerDashboard() {
               </div>
             </Card>
 
-            <Carousel slides={carouselSlides} />
+            <Carousel slides={[
+  { src: "/images/atm-machine.jpg", caption: "Every ATM transaction, verified" },
+  { src: "/images/bank-notes.jpg", caption: "Your money, protected in minutes" },
+  { src: "/images/transaction.jpg", caption: "Instant reversal when something goes wrong" },
+]} />
 
             <MalawiActivityMap />
           </div>

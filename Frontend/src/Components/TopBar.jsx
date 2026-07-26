@@ -1,10 +1,11 @@
 import { Link } from "react-router-dom";
 import { Search, Bell, Settings } from "lucide-react";
-import { customer } from "../Data/mockData";
+import { getStoredCustomer } from "../api";
 import { useNotifications } from "../Context/NotificationsContext";
 
 export function TopBarActions({ showSearch = false }) {
   const { unreadCount } = useNotifications();
+  const cust = getStoredCustomer();
   return (
     <div className="hidden lg:flex items-center gap-3">
       {showSearch && (
@@ -39,7 +40,7 @@ export function TopBarActions({ showSearch = false }) {
         aria-label="View profile"
         className="w-9 h-9 rounded-full bg-primary-container text-white flex items-center justify-center text-xs font-bold ml-1 hover:opacity-90 transition-opacity"
       >
-        {customer.initials}
+        {cust?.initials || "?"}
       </Link>
     </div>
   );

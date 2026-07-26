@@ -4,7 +4,7 @@ import { Sun, Moon, Bell, Globe, MessageSquare, ShieldCheck, LogOut } from "luci
 import Shell from "../Components/Shell";
 import Card from "../Components/Card";
 import { useTheme } from "../Context/ThemeContext";
-import { customer } from "../Data/mockData";
+import { getStoredCustomer, updatePreferences, logout } from "../api";
 
 function ToggleRow({ icon: Icon, title, detail, checked, onChange }) {
   return (
@@ -37,6 +37,7 @@ function ToggleRow({ icon: Icon, title, detail, checked, onChange }) {
 }
 
 export default function Settings() {
+  const cust = getStoredCustomer() || {};
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   const [smsAlerts, setSmsAlerts] = useState(true);
@@ -49,7 +50,7 @@ export default function Settings() {
       <div className="max-w-xl mx-auto">
         <h1 className="text-2xl lg:text-3xl font-bold text-on-surface mb-1">Settings</h1>
         <p className="text-sm text-on-surface-variant mb-6">
-          Signed in as {customer.name} · {customer.accountNumber}
+          Signed in as {cust.name || "User"} · {cust.accountNumber || "**** **** ****"}
         </p>
 
         <Card padded={false} className="mb-5">
@@ -144,7 +145,7 @@ export default function Settings() {
         </Card>
 
         <button
-          onClick={() => navigate("/login")}
+          onClick={() => { logout(); navigate("/login"); }}
           className="w-full flex items-center justify-center gap-2 py-3.5 rounded font-semibold text-sm text-error hover:bg-error-container/30 transition-colors"
         >
           <LogOut size={16} />

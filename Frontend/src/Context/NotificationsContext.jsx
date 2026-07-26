@@ -1,67 +1,48 @@
-import { createContext, useContext, useState } from "react";
-import { RotateCcw, ShieldAlert, MessageSquare, Lock } from "lucide-react";
+import { createContext, useContext, useEffect, useState } from "react";
+import { getNotifications, markAllNotificationsRead, markNotificationRead, subscribeToNotifications } from "../api";
 
 const NotificationsContext = createContext(null);
 
-const initialNotifications = [
-  {
-    id: "n1",
-    icon: RotateCcw,
-    tone: "success",
-    title: "Funds reversed",
-    detail: "MWK 50,000.00 was returned to your account after a failed ATM withdrawal.",
-    time: "2 hours ago",
-    read: false,
-    to: "/activity",
-  },
-  {
-    id: "n2",
-    icon: ShieldAlert,
-    tone: "warning",
-    title: "Suspicious activity flagged",
-    detail: "A withdrawal in Lilongwe was flagged — two withdrawals in different cities minutes apart.",
-    time: "3 hours ago",
-    read: false,
-    to: "/security/alert",
-  },
-  {
-    id: "n3",
-    icon: MessageSquare,
-    tone: "primary",
-    title: "SMS confirmation sent",
-    detail: "A confirmation text was sent to your number ending in *2018.",
-    time: "3 hours ago",
-    read: true,
-    to: "/activity",
-  },
-  {
-    id: "n4",
-    icon: Lock,
-    tone: "error",
-    title: "Card blocked",
-    detail: "Your NBM Visa Debit card was blocked at your request.",
-    time: "Yesterday",
-    read: true,
-    to: "/security",
-  },
-];
-
 export function NotificationsProvider({ children }) {
-  const [notifications, setNotifications] = useState(initialNotifications);
+  const [notifications, setNotifications] = useState([]);
+  const [loaded, setLoaded] = useState(false);
 
-  const markAllRead = () => {
+  // Fetch notifications from API on mount
+  useEffect(() => {
+    let cancelled = false;
+    getNotifications()
+      .then((data) => {
+        if (!cancelled) {
+          setNotifications(data.map((n) => ({ ...n, read: n.read })));
+          setLoaded(true);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setLoaded(true); // fail silently, show empty
+      });
+    return () => { cancelled = true; };
+  }, []);
+
+  // SSE subscription for real-time notifications
+  useEffect(() => {
+    const close = subscribeToNotifications("customer", (newNotif) => {
+      setNotifications((prev) => [{ ...newNotif, read: false, time: "Just now" }, ...prev]);
+    });
+    return close;
+  }, []);
+
+  const markAllRead = async () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    try { await markAllNotificationsRead(); } catch { /* silent */ }
   };
 
-  const markRead = (id) => {
+  const markRead = async (id) => {
     setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
+    try { await markNotificationRead(id); } catch { /* silent */ }
   };
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  // Lets a page (e.g. Alerts) push a brand-new notification onto the bell
-  // in real time, so an action taken on one screen is immediately visible
-  // on another — nice for a live demo.
   const addNotification = (notification) => {
     setNotifications((prev) => [
       { id: `n${Date.now()}`, read: false, time: "Just now", ...notification },

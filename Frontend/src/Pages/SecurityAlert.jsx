@@ -1,14 +1,16 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { ShieldAlert, History, CheckCircle2, Lock } from "lucide-react";
 import Shell from "../Components/Shell";
 import Card from "../Components/Card";
 import Button from "../Components/Button";
 import Chip from "../Components/Chip";
-import { securityAlert, currency } from "../Data/mockData";
+import { currency } from "../api";
 
 export default function SecurityAlert() {
   const navigate = useNavigate();
+  const location = useLocation?.() || {};
+  const alertData = location.state?.alert || {};
   const [resolved, setResolved] = useState(null);
 
   if (resolved) {
@@ -83,30 +85,30 @@ export default function SecurityAlert() {
               </svg>
               <div className="absolute bottom-3 left-3 bg-surface-lowest rounded px-2.5 py-1.5 shadow-soft">
                 <p className="text-[10px] font-semibold text-on-surface-variant">HOME CITY</p>
-                <p className="text-xs font-bold text-on-surface">{securityAlert.homeCity}</p>
+                <p className="text-xs font-bold text-on-surface">{alertData.homeCity}</p>
               </div>
               <div className="absolute top-3 right-3 bg-surface-lowest rounded px-2.5 py-1.5 shadow-soft">
                 <p className="text-[10px] font-semibold text-secondary">FLAGGED LOCATION</p>
-                <p className="text-xs font-bold text-on-surface">{securityAlert.flaggedCity}</p>
+                <p className="text-xs font-bold text-on-surface">{alertData.flaggedCity}</p>
               </div>
             </div>
 
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-on-surface-variant">Transaction amount</span>
-                <span className="font-bold text-on-surface">{currency(securityAlert.amount)}</span>
+                <span className="font-bold text-on-surface">{currency(alertData.amount)}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-on-surface-variant">Time</span>
-                <span className="font-semibold text-on-surface text-sm">{securityAlert.time}</span>
+                <span className="font-semibold text-on-surface text-sm">{alertData.time}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-on-surface-variant">Location</span>
-                <span className="font-semibold text-on-surface text-sm text-right">{securityAlert.atmLocation}</span>
+                <span className="font-semibold text-on-surface text-sm text-right">{alertData.atmLocation}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-on-surface-variant">Method</span>
-                <span className="font-semibold text-on-surface text-sm">{securityAlert.method}</span>
+                <span className="font-semibold text-on-surface text-sm">{alertData.method}</span>
               </div>
             </div>
           </div>
@@ -115,7 +117,7 @@ export default function SecurityAlert() {
             <History size={16} className="text-secondary shrink-0 mt-0.5" />
             <div>
               <p className="text-sm font-semibold text-on-surface">Velocity alert</p>
-              <p className="text-xs text-on-surface-variant mt-0.5 leading-relaxed">{securityAlert.reason}</p>
+              <p className="text-xs text-on-surface-variant mt-0.5 leading-relaxed">{alertData.reason}</p>
             </div>
           </div>
 

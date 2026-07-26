@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { MessageCircle, X, Send } from "lucide-react";
 import { Link } from "react-router-dom";
-import { findFaqAnswer } from "../Data/faqMatcher";
+import { chatQuery } from "../api";
 
 const greetings = {
   en: "Hello! Ask me anything about SwitchGuard — dispense errors, card blocking, USSD, and more.",
@@ -52,18 +52,27 @@ export default function HelpChatWidget() {
     });
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     const trimmed = inputValue.trim();
     if (!trimmed) return;
 
     const userMessage = { role: "user", text: trimmed };
-    const answer = findFaqAnswer(trimmed, language);
+    let answer = fallbackMessages[language];
+    let isFallback = true;
+
+    try {
+      const result = await chatQuery(trimmed, language);
+      answer = result.answer;
+      isFallback = result.isFallback;
+    } catch {
+      // fallback already set
+    }
 
     const botMessage = {
       role: "bot",
       text: answer || fallbackMessages[language],
-      isFallback: !answer,
+      isFallback: isFallback,
     };
 
     setMessages((prev) => [...prev, userMessage, botMessage]);

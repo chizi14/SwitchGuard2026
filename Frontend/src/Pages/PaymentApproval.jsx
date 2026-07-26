@@ -17,7 +17,7 @@ import Card from "../Components/Card";
 import Button from "../Components/Button";
 import Chip from "../Components/Chip";
 import PhoneSmsPreview from "../Components/PhoneSmsPreview";
-import { pendingPayments, cards as initialCards, currency } from "../Data/mockData";
+import { getPendingPayments, getCards, approvePayment, declinePayment, blockPayment, currency } from "../api";
 
 const tabs = [
   { id: "pending", label: "Pending Approval" },
@@ -154,11 +154,18 @@ function PendingRow({ item, card, onAction }) {
 function PendingApprovalTab() {
   const [cardFilter, setCardFilter] = useState("all");
   const [lastSms, setLastSms] = useState(null);
+  const [payments, setPayments] = useState([]);
+  const [cards, setCards] = useState([]);
 
-  const visible = pendingPayments.filter(
+  useEffect(() => {
+    getPendingPayments().then(setPayments).catch(() => {});
+    getCards().then(setCards).catch(() => {});
+  }, []);
+
+  const visible = payments.filter(
     (p) => cardFilter === "all" || p.cardId === cardFilter
   );
-  const cardById = Object.fromEntries(initialCards.map((c) => [c.id, c]));
+  const cardById = Object.fromEntries(cards.map((c) => [c.id, c]));
 
   const handleAction = (item, status, autoDeclined) => {
     const card = cardById[item.cardId];
@@ -192,7 +199,7 @@ function PendingApprovalTab() {
           >
             All cards
           </button>
-          {initialCards.map((c) => (
+          {cards.map((c) => (
             <button
               key={c.id}
               onClick={() => setCardFilter(c.id)}
@@ -247,7 +254,7 @@ function PendingApprovalTab() {
 
 function CardControlsTab() {
   const [controls, setControls] = useState(
-    initialCards.reduce(
+    cards.reduce(
       (acc, c) => ({
         ...acc,
         [c.id]: { requireApproval: true, blockOnline: false },
@@ -270,7 +277,7 @@ function CardControlsTab() {
         Choose how each card handles online payments — require your approval for
         every purchase, or block online payments on that card entirely.
       </p>
-      {initialCards.map((c) => {
+      {cards.map((c) => {
         const control = controls[c.id];
         return (
           <Card key={c.id} padded={false}>
