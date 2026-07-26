@@ -53,7 +53,7 @@ The system never acts on a customer’s claim alone — only on what the record 
 ## Technologies Used
 
 - **Frontend:** React, Tailwind CSS, React Router, Leaflet
-- **Backend:** Node.js, Express, SQLite
+- **Backend:** FastAPI, SQLAlchemy, PostgreSQL
 - **SMS and USSD:** Africa’s Talking API (confirmed to support Malawi; developer sandbox available)
 - **AI tools:** Claude, used under FINOVATE’s AI policy; the team understands and can explain all code
 - **Architecture:** log simulator → detection engine → verification → reversal and notification
@@ -62,12 +62,48 @@ The system never acts on a customer’s claim alone — only on what the record 
 
 ## Installation Instructions
 
-### Requirements
+### Option 1: Docker (Recommended — Full Stack)
 
-- Node.js 18 or newer
-- npm
+**Prerequisites:** Docker Desktop (or Docker Engine + Docker Compose), Git
 
-### Run the frontend locally
+```bash
+# Clone the repository
+git clone https://github.com/chizi14/SwitchGuard2026.git
+cd SwitchGuard2026
+
+# Copy environment variables
+cp .env.example .env
+
+# Start the full stack (PostgreSQL + Backend + Frontend)
+docker compose up --build
+```
+
+The full stack will be available at:
+
+| Service | URL |
+|---------|-----|
+| Frontend | http://localhost:5173 |
+| API (Swagger Docs) | http://localhost:8000/docs |
+| Health Check | http://localhost:8000/health |
+
+### Option 2: Local Development (without Docker)
+
+**Prerequisites:** Python 3.12+, Node.js 22+, PostgreSQL 16
+
+**Backend:**
+
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate      # or: venv\Scripts\activate on Windows
+pip install -r requirements.txt
+createdb switchguard
+alembic upgrade head
+python -m app.seed
+uvicorn app.main:app --reload --port 8000
+```
+
+**Frontend:**
 
 ```bash
 cd Frontend
@@ -75,20 +111,25 @@ npm install
 npm run dev
 ```
 
-Open:
+### Environment Variables
 
-```text
-http://localhost:5173/
-```
+Copy `.env.example` to `.env` and configure:
 
-### Demo login
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `DATABASE_URL` | PostgreSQL connection string | `postgresql+asyncpg://switchguard:switchguard_secret@db:5432/switchguard` |
+| `JWT_SECRET` | JWT signing secret | (change in production) |
+| `JWT_EXPIRY_MINUTES` | Token lifetime in minutes | `60` |
+| `REVERSAL_AUTO_THRESHOLD_MWK` | Max amount for automatic reversal | `100000` |
+
+---
+
+## Demo Credentials
 
 | Role | URL | Credentials |
 |------|-----|-------------|
-| Customer | http://localhost:5173/login | Account `5829` · PIN `1234` |
-| Admin | http://localhost:5173/admin-login | Staff ID `ADMIN01` · PIN `1234` |
-
-Any non-empty account number and PIN also work in this prototype.
+| Customer | http://localhost:5173/login | Account ID `5829` · PIN `1234` |
+| Admin | http://localhost:5173/admin-login | Staff ID `ADMIN001` · PIN `admin123` |
 
 ### Main routes
 
