@@ -158,7 +158,7 @@ This is a **hackathon prototype**. Live ATM network monitoring and real mobile-m
 | Name | Role |
 |------|------|
 | Uchizi Kanyimbo | Strategist |
-| Akuzike | Software Developer |
+| Akuzike Amos Misomali | Software Developer |
 | Zaithwa Chikuse | Communicator |
 | Cyrus Thindwa | Researcher |
 | Angella Kamanga | UI Designer |
