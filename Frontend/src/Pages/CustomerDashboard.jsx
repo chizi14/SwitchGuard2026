@@ -48,19 +48,22 @@ const transactionIcons = {
 const securityTips = [
   {
     title: "Use two-factor authentication",
-    detail: "Keep a second approval step turned on so account access needs more than just a password.",
+    detail:
+      "Keep a second approval step turned on so account access needs more than just a password.",
     icon: ShieldCheck,
     tone: "success",
   },
   {
     title: "Protect your PIN",
-    detail: "Never share your PIN, and avoid typing it where anyone can watch or capture it.",
+    detail:
+      "Never share your PIN, and avoid typing it where anyone can watch or capture it.",
     icon: Blocks,
     tone: "warning",
   },
   {
     title: "Manage trusted devices",
-    detail: "Review signed-in devices regularly and log out of phones you no longer use.",
+    detail:
+      "Review signed-in devices regularly and log out of phones you no longer use.",
     icon: Smartphone,
     tone: "neutral",
   },
@@ -73,14 +76,32 @@ function TransactionRow({ transaction }) {
   return (
     <div className="flex items-center justify-between gap-4 px-5 py-4 md:px-6">
       <div className="flex items-center gap-3 min-w-0">
-        <IconBadge icon={TransactionIcon} tone={transaction.status === "Reversed" ? "neutral" : positive ? "success" : "primary"} size={40} />
+        <IconBadge
+          icon={TransactionIcon}
+          tone={
+            transaction.status === "Reversed"
+              ? "neutral"
+              : positive
+                ? "success"
+                : "primary"
+          }
+          size={40}
+        />
         <div className="min-w-0">
-          <p className="font-semibold text-on-surface truncate">{transaction.merchant}</p>
-          <p className="text-xs text-on-surface-variant mt-1">{transaction.timestamp}</p>
+          <p className="font-semibold text-on-surface truncate">
+            {transaction.merchant}
+          </p>
+          <p className="text-xs text-on-surface-variant mt-1">
+            {transaction.timestamp}
+          </p>
         </div>
       </div>
       <div className="text-right shrink-0">
-        <p className={`font-bold ${positive ? "text-on-tertiary-container" : "text-on-surface"}`}>{currency(transaction.amount)}</p>
+        <p
+          className={`font-bold ${positive ? "text-on-tertiary-container" : "text-on-surface"}`}
+        >
+          {currency(transaction.amount)}
+        </p>
         <div className="mt-1 flex justify-end">
           <Chip status={transaction.status} />
         </div>
@@ -89,14 +110,24 @@ function TransactionRow({ transaction }) {
   );
 }
 
-function DashboardModal({ panel, onClose, onConfirmBlock, blockConfirmed, selectedCard, onToggleFreeze }) {
+function DashboardModal({
+  panel,
+  onClose,
+  onConfirmBlock,
+  blockConfirmed,
+  selectedCard,
+  onToggleFreeze,
+}) {
   const dialogRef = useRef(null);
   const previousActiveElement = useRef(null);
   const [cardView, setCardView] = useState("detail");
   const blockTargetLabel = "****5829";
   const reversedTransactions = useMemo(
-    () => customerTransactions.filter((transaction) => transaction.status === "Reversed"),
-    []
+    () =>
+      customerTransactions.filter(
+        (transaction) => transaction.status === "Reversed",
+      ),
+    [],
   );
 
   useEffect(() => {
@@ -109,12 +140,13 @@ function DashboardModal({ panel, onClose, onConfirmBlock, blockConfirmed, select
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
-    const focusableSelector = 'button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])';
+    const focusableSelector =
+      'button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])';
 
     const focusFirst = () => {
-      const focusables = Array.from(dialog.querySelectorAll(focusableSelector)).filter(
-        (element) => !element.hasAttribute("disabled")
-      );
+      const focusables = Array.from(
+        dialog.querySelectorAll(focusableSelector),
+      ).filter((element) => !element.hasAttribute("disabled"));
 
       if (focusables.length > 0) {
         focusables[0].focus();
@@ -136,9 +168,9 @@ function DashboardModal({ panel, onClose, onConfirmBlock, blockConfirmed, select
         return;
       }
 
-      const focusables = Array.from(dialog.querySelectorAll(focusableSelector)).filter(
-        (element) => !element.hasAttribute("disabled")
-      );
+      const focusables = Array.from(
+        dialog.querySelectorAll(focusableSelector),
+      ).filter((element) => !element.hasAttribute("disabled"));
 
       if (!focusables.length) {
         event.preventDefault();
@@ -164,7 +196,10 @@ function DashboardModal({ panel, onClose, onConfirmBlock, blockConfirmed, select
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = previousOverflow;
-      if (previousActiveElement.current && typeof previousActiveElement.current.focus === "function") {
+      if (
+        previousActiveElement.current &&
+        typeof previousActiveElement.current.focus === "function"
+      ) {
         previousActiveElement.current.focus();
       }
     };
@@ -189,11 +224,16 @@ function DashboardModal({ panel, onClose, onConfirmBlock, blockConfirmed, select
 
   const bodyMap = {
     block: `Are you sure you want to block your card ending in ${blockTargetLabel}?`,
-    activity: "These are the same transactions shown in the Recent Transactions feed.",
-    security: "A few simple habits keep your account safer without adding friction.",
+    activity:
+      "These are the same transactions shown in the Recent Transactions feed.",
+    security:
+      "A few simple habits keep your account safer without adding friction.",
     reversals: "Only reversed transactions are shown here.",
-    about: "SwitchGuard watches ATM activity, spots dispense errors, and helps reverse failed charges quickly.",
-    "card-detail": selectedCard ? `${selectedCard.network} card ending in ${selectedCard.last4}` : "",
+    about:
+      "SwitchGuard watches ATM activity, spots dispense errors, and helps reverse failed charges quickly.",
+    "card-detail": selectedCard
+      ? `${selectedCard.network} card ending in ${selectedCard.last4}`
+      : "",
   };
 
   return (
@@ -217,8 +257,13 @@ function DashboardModal({ panel, onClose, onConfirmBlock, blockConfirmed, select
         <Card className="overflow-hidden border border-outline-variant shadow-soft-hover bg-surface-lowest p-0">
           <div className="flex items-start justify-between gap-4 border-b border-outline-variant px-5 py-4 md:px-6">
             <div>
-              <p className="text-xs font-bold tracking-[0.18em] uppercase text-on-surface-variant">{titleMap[panel]}</p>
-              <h2 id={`dashboard-modal-${panel}-title`} className="mt-1 text-lg font-bold text-on-surface">
+              <p className="text-xs font-bold tracking-[0.18em] uppercase text-on-surface-variant">
+                {titleMap[panel]}
+              </p>
+              <h2
+                id={`dashboard-modal-${panel}-title`}
+                className="mt-1 text-lg font-bold text-on-surface"
+              >
                 {panel === "block"
                   ? "Confirm card block"
                   : panel === "activity"
@@ -229,7 +274,10 @@ function DashboardModal({ panel, onClose, onConfirmBlock, blockConfirmed, select
                         ? "How SwitchGuard works"
                         : "Reversal history"}
               </h2>
-              <p id={`dashboard-modal-${panel}-description`} className="mt-1 text-sm text-on-surface-variant leading-6">
+              <p
+                id={`dashboard-modal-${panel}-description`}
+                className="mt-1 text-sm text-on-surface-variant leading-6"
+              >
                 {bodyMap[panel]}
               </p>
             </div>
@@ -247,7 +295,9 @@ function DashboardModal({ panel, onClose, onConfirmBlock, blockConfirmed, select
             {panel === "block" && (
               <div className="px-5 py-5 md:px-6">
                 <div className="rounded-lg border border-secondary-container bg-secondary-container/15 p-4">
-                  <p className="text-sm font-semibold text-on-surface">{blockConfirmed ? "Card blocked" : "Confirm this action"}</p>
+                  <p className="text-sm font-semibold text-on-surface">
+                    {blockConfirmed ? "Card blocked" : "Confirm this action"}
+                  </p>
                   <p className="mt-2 text-sm leading-6 text-on-surface-variant">
                     {blockConfirmed
                       ? "Your card is now blocked locally for this session. No backend call has been made."
@@ -271,7 +321,10 @@ function DashboardModal({ panel, onClose, onConfirmBlock, blockConfirmed, select
             {panel === "activity" && (
               <div className="divide-y divide-outline-variant max-h-[60vh] overflow-y-auto">
                 {customerTransactions.map((transaction) => (
-                  <TransactionRow key={transaction.id} transaction={transaction} />
+                  <TransactionRow
+                    key={transaction.id}
+                    transaction={transaction}
+                  />
                 ))}
               </div>
             )}
@@ -279,11 +332,18 @@ function DashboardModal({ panel, onClose, onConfirmBlock, blockConfirmed, select
             {panel === "security" && (
               <div className="space-y-3 px-5 py-5 md:px-6">
                 {securityTips.map((tip) => (
-                  <div key={tip.title} className="flex gap-3 rounded-lg border border-outline-variant bg-surface-lowest p-4">
+                  <div
+                    key={tip.title}
+                    className="flex gap-3 rounded-lg border border-outline-variant bg-surface-lowest p-4"
+                  >
                     <IconBadge icon={tip.icon} tone={tip.tone} size={44} />
                     <div className="min-w-0">
-                      <h3 className="font-semibold text-on-surface">{tip.title}</h3>
-                      <p className="mt-1 text-sm leading-6 text-on-surface-variant">{tip.detail}</p>
+                      <h3 className="font-semibold text-on-surface">
+                        {tip.title}
+                      </h3>
+                      <p className="mt-1 text-sm leading-6 text-on-surface-variant">
+                        {tip.detail}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -293,11 +353,20 @@ function DashboardModal({ panel, onClose, onConfirmBlock, blockConfirmed, select
             {panel === "reversals" && (
               <div className="divide-y divide-outline-variant max-h-[60vh] overflow-y-auto">
                 {reversedTransactions.length ? (
-                  reversedTransactions.map((transaction) => <TransactionRow key={transaction.id} transaction={transaction} />)
+                  reversedTransactions.map((transaction) => (
+                    <TransactionRow
+                      key={transaction.id}
+                      transaction={transaction}
+                    />
+                  ))
                 ) : (
                   <div className="px-5 py-8 md:px-6 text-center">
-                    <p className="text-sm font-semibold text-on-surface">No reversed transactions yet</p>
-                    <p className="mt-2 text-sm text-on-surface-variant">Any reversed activity will appear here automatically.</p>
+                    <p className="text-sm font-semibold text-on-surface">
+                      No reversed transactions yet
+                    </p>
+                    <p className="mt-2 text-sm text-on-surface-variant">
+                      Any reversed activity will appear here automatically.
+                    </p>
                   </div>
                 )}
               </div>
@@ -311,83 +380,146 @@ function DashboardModal({ panel, onClose, onConfirmBlock, blockConfirmed, select
                   className="w-full h-40 object-cover rounded-lg"
                 />
                 <p className="text-sm leading-7 text-on-surface-variant">
-                  SwitchGuard watches ATM transactions in real time and compares each charge against the machine log.
-                  When an ATM takes money but fails to dispense cash, the system flags the error instead of waiting for a manual report.
+                  SwitchGuard watches ATM transactions in real time and compares
+                  each charge against the machine log. When an ATM takes money
+                  but fails to dispense cash, the system flags the error instead
+                  of waiting for a manual report.
                 </p>
                 <p className="text-sm leading-7 text-on-surface-variant">
-                  It verifies that the dispense error belongs to the same transaction record, then starts the reversal flow automatically.
-                  That means the charge can be sent back to the customer’s account within minutes, not days.
+                  It verifies that the dispense error belongs to the same
+                  transaction record, then starts the reversal flow
+                  automatically. That means the charge can be sent back to the
+                  customer’s account within minutes, not days.
                 </p>
                 <p className="text-sm leading-7 text-on-surface-variant">
-                  The result is less waiting for customers and less manual processing for the bank, while keeping the experience simple and transparent.
+                  The result is less waiting for customers and less manual
+                  processing for the bank, while keeping the experience simple
+                  and transparent.
                 </p>
               </div>
             )}
 
-            {panel === "card-detail" && selectedCard && cardView === "detail" && (
-              <div className="space-y-4 px-5 py-5 md:px-6">
-                <div className="rounded-lg border border-outline-variant bg-surface-low p-4">
-                  <p className="text-xs font-bold tracking-[0.18em] uppercase text-on-surface-variant">{selectedCard.network}</p>
-                  <p className="mt-1 text-lg font-bold text-on-surface">**** **** **** {selectedCard.last4}</p>
-                  <p className="mt-1 text-sm text-on-surface-variant">Expires {selectedCard.exp}</p>
-                  {selectedCard.frozen && <Chip status="Frozen" className="mt-2" />}
-                </div>
-
-                <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                  <Button variant="outline" onClick={() => onToggleFreeze(selectedCard.id)}>
-                    {selectedCard.frozen ? "Unfreeze Card" : "Freeze Card"}
-                  </Button>
-                  <Button variant="primary" onClick={() => setCardView("statement")}>
-                    View Statement
-                  </Button>
-                </div>
-
-                {selectedCard.frozen && (
-                  <div className="rounded-lg border border-secondary-container/30 bg-secondary-container/10 p-4">
-                    <p className="text-sm font-semibold text-on-surface">Card frozen</p>
-                    <p className="mt-1 text-sm text-on-surface-variant">This card is temporarily blocked for transactions. Tap "Unfreeze Card" to restore access.</p>
-                  </div>
-                )}
-
-                {!selectedCard.frozen && (
+            {panel === "card-detail" &&
+              selectedCard &&
+              cardView === "detail" && (
+                <div className="space-y-4 px-5 py-5 md:px-6">
                   <div className="rounded-lg border border-outline-variant bg-surface-low p-4">
-                    <p className="text-sm font-semibold text-on-surface">Statement view coming soon</p>
-                    <p className="mt-1 text-sm text-on-surface-variant">Detailed card statements will be available in a future update.</p>
+                    <p className="text-xs font-bold tracking-[0.18em] uppercase text-on-surface-variant">
+                      {selectedCard.network}
+                    </p>
+                    <p className="mt-1 text-lg font-bold text-on-surface">
+                      **** **** **** {selectedCard.last4}
+                    </p>
+                    <p className="mt-1 text-sm text-on-surface-variant">
+                      Expires {selectedCard.exp}
+                    </p>
+                    {selectedCard.frozen && (
+                      <Chip status="Frozen" className="mt-2" />
+                    )}
                   </div>
-                )}
-              </div>
-            )}
 
-            {panel === "card-detail" && selectedCard && cardView === "statement" && (
-              <div className="space-y-4 px-5 py-5 md:px-6">
-                <div className="rounded-lg border border-outline-variant bg-surface-low p-4">
-                  <p className="text-xs font-bold tracking-[0.18em] uppercase text-on-surface-variant">Statement</p>
-                  <p className="mt-1 text-sm font-semibold text-on-surface">{selectedCard.label} — **** **** **** {selectedCard.last4}</p>
-                </div>
+                  <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                    <Button
+                      variant="outline"
+                      onClick={() => onToggleFreeze(selectedCard.id)}
+                    >
+                      {selectedCard.frozen ? "Unfreeze Card" : "Freeze Card"}
+                    </Button>
+                    <Button
+                      variant="primary"
+                      onClick={() => setCardView("statement")}
+                    >
+                      View Statement
+                    </Button>
+                  </div>
 
-                <div className="space-y-3">
-                  {[
-                    { date: "Jul 25, 2026", desc: "Chipiku Stores", amount: -124000 },
-                    { date: "Jul 24, 2026", desc: "NBM ATM Blantyre Main", amount: -50000 },
-                    { date: "Jul 23, 2026", desc: "Salary Deposit", amount: 560000 },
-                  ].map((entry, i) => (
-                    <div key={i} className="flex items-center justify-between gap-3 rounded-md border border-outline-variant bg-surface-lowest px-4 py-3">
-                      <div className="min-w-0">
-                        <p className="font-semibold text-on-surface truncate">{entry.desc}</p>
-                        <p className="text-xs text-on-surface-variant mt-1">{entry.date}</p>
-                      </div>
-                      <p className={`text-sm font-bold shrink-0 ${entry.amount > 0 ? "text-on-tertiary-container" : "text-on-surface"}`}>
-                        {currency(entry.amount)}
+                  {selectedCard.frozen && (
+                    <div className="rounded-lg border border-secondary-container/30 bg-secondary-container/10 p-4">
+                      <p className="text-sm font-semibold text-on-surface">
+                        Card frozen
+                      </p>
+                      <p className="mt-1 text-sm text-on-surface-variant">
+                        This card is temporarily blocked for transactions. Tap
+                        "Unfreeze Card" to restore access.
                       </p>
                     </div>
-                  ))}
-                </div>
+                  )}
 
-                <Button variant="outline" onClick={() => setCardView("detail")} className="w-full">
-                  Back to Card Details
-                </Button>
-              </div>
-            )}
+                  {!selectedCard.frozen && (
+                    <div className="rounded-lg border border-outline-variant bg-surface-low p-4">
+                      <p className="text-sm font-semibold text-on-surface">
+                        Statement view coming soon
+                      </p>
+                      <p className="mt-1 text-sm text-on-surface-variant">
+                        Detailed card statements will be available in a future
+                        update.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+            {panel === "card-detail" &&
+              selectedCard &&
+              cardView === "statement" && (
+                <div className="space-y-4 px-5 py-5 md:px-6">
+                  <div className="rounded-lg border border-outline-variant bg-surface-low p-4">
+                    <p className="text-xs font-bold tracking-[0.18em] uppercase text-on-surface-variant">
+                      Statement
+                    </p>
+                    <p className="mt-1 text-sm font-semibold text-on-surface">
+                      {selectedCard.label} — **** **** **** {selectedCard.last4}
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    {[
+                      {
+                        date: "Jul 25, 2026",
+                        desc: "Chipiku Stores",
+                        amount: -124000,
+                      },
+                      {
+                        date: "Jul 24, 2026",
+                        desc: "NBM ATM Blantyre Main",
+                        amount: -50000,
+                      },
+                      {
+                        date: "Jul 23, 2026",
+                        desc: "Salary Deposit",
+                        amount: 560000,
+                      },
+                    ].map((entry, i) => (
+                      <div
+                        key={i}
+                        className="flex items-center justify-between gap-3 rounded-md border border-outline-variant bg-surface-lowest px-4 py-3"
+                      >
+                        <div className="min-w-0">
+                          <p className="font-semibold text-on-surface truncate">
+                            {entry.desc}
+                          </p>
+                          <p className="text-xs text-on-surface-variant mt-1">
+                            {entry.date}
+                          </p>
+                        </div>
+                        <p
+                          className={`text-sm font-bold shrink-0 ${entry.amount > 0 ? "text-on-tertiary-container" : "text-on-surface"}`}
+                        >
+                          {currency(entry.amount)}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    onClick={() => setCardView("detail")}
+                    className="w-full"
+                  >
+                    Back to Card Details
+                  </Button>
+                </div>
+              )}
           </div>
         </Card>
       </div>
@@ -443,21 +575,24 @@ function MalawiActivityMap() {
     if (points.length >= 2) {
       L.polyline(
         points.map((p) => p.coords),
-        { color: "#9aa0ac", weight: 3, dashArray: "6 8" }
+        { color: "#9aa0ac", weight: 3, dashArray: "6 8" },
       ).addTo(map);
     }
 
     points.forEach((pin, i) => {
-      const color = i === 0 ? "#000519" : i === points.length - 1 ? "#775a00" : "#7185bd";
+      const color =
+        i === 0 ? "#000519" : i === points.length - 1 ? "#775a00" : "#7185bd";
       const marker = L.marker(pin.coords, { icon: dotIcon(color) }).addTo(map);
       marker.bindPopup(
-        `<strong>${pin.city}</strong><br/>${pin.region}<br/><span style="opacity:.75">${pin.timestamp}</span>`
+        `<strong>${pin.city}</strong><br/>${pin.region}<br/><span style="opacity:.75">${pin.timestamp}</span>`,
       );
       marker.on("click", () => setActivePin(pin.city));
     });
 
     if (points.length) {
-      map.fitBounds(L.latLngBounds(points.map((p) => p.coords)), { padding: [40, 40] });
+      map.fitBounds(L.latLngBounds(points.map((p) => p.coords)), {
+        padding: [40, 40],
+      });
     }
 
     return () => {
@@ -476,7 +611,9 @@ function MalawiActivityMap() {
           <p className="text-xs font-bold tracking-[0.18em] uppercase text-on-surface-variant">
             Recent Activity Map
           </p>
-          <h2 className="mt-1 text-lg font-bold text-on-surface">Login history</h2>
+          <h2 className="mt-1 text-lg font-bold text-on-surface">
+            Login history
+          </h2>
         </div>
       </div>
 
@@ -487,13 +624,17 @@ function MalawiActivityMap() {
         />
         {home && (
           <div className="absolute bottom-3 left-3 bg-surface-lowest rounded px-2.5 py-1.5 shadow-soft pointer-events-none">
-            <p className="text-[10px] font-semibold text-on-surface-variant">HOME CITY</p>
+            <p className="text-[10px] font-semibold text-on-surface-variant">
+              HOME CITY
+            </p>
             <p className="text-xs font-bold text-on-surface">{home.city}</p>
           </div>
         )}
         {latest && latest.city !== home?.city && (
           <div className="absolute top-3 right-3 bg-surface-lowest rounded px-2.5 py-1.5 shadow-soft pointer-events-none">
-            <p className="text-[10px] font-semibold text-secondary">LATEST LOGIN</p>
+            <p className="text-[10px] font-semibold text-secondary">
+              LATEST LOGIN
+            </p>
             <p className="text-xs font-bold text-on-surface">{latest.city}</p>
           </div>
         )}
@@ -512,10 +653,16 @@ function MalawiActivityMap() {
             }`}
           >
             <div>
-              <p className="text-sm font-semibold text-on-surface">{pin.city}</p>
-              <p className="text-[11px] text-on-surface-variant">{pin.region}</p>
+              <p className="text-sm font-semibold text-on-surface">
+                {pin.city}
+              </p>
+              <p className="text-[11px] text-on-surface-variant">
+                {pin.region}
+              </p>
             </div>
-            <p className="text-xs text-on-surface-variant shrink-0">{pin.timestamp}</p>
+            <p className="text-xs text-on-surface-variant shrink-0">
+              {pin.timestamp}
+            </p>
           </button>
         ))}
       </div>
@@ -551,11 +698,11 @@ export default function CustomerDashboard() {
   const handleToggleFreeze = (cardId) => {
     setCards((prev) =>
       prev.map((card) =>
-        card.id === cardId ? { ...card, frozen: !card.frozen } : card
-      )
+        card.id === cardId ? { ...card, frozen: !card.frozen } : card,
+      ),
     );
     setSelectedCard((prev) =>
-      prev && prev.id === cardId ? { ...prev, frozen: !prev.frozen } : prev
+      prev && prev.id === cardId ? { ...prev, frozen: !prev.frozen } : prev,
     );
   };
 
@@ -568,10 +715,15 @@ export default function CustomerDashboard() {
               <div className="flex items-start gap-4">
                 <IconBadge icon={ShieldCheck} tone="success" />
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-bold tracking-[0.18em] uppercase text-on-surface-variant">Account status</p>
-                  <h1 className="mt-1 text-2xl font-bold text-on-surface">No issues detected</h1>
+                  <p className="text-xs font-bold tracking-[0.18em] uppercase text-on-surface-variant">
+                    Account status
+                  </p>
+                  <h1 className="mt-1 text-2xl font-bold text-on-surface">
+                    No issues detected
+                  </h1>
                   <p className="mt-2 text-sm text-on-surface-variant leading-6 max-w-2xl">
-                    Your accounts and cards are fully protected. No suspicious activity found in the last 24 hours.
+                    Your accounts and cards are fully protected. No suspicious
+                    activity found in the last 24 hours.
                   </p>
                   {statusMessage && (
                     <div className="mt-4 inline-flex items-center rounded-full bg-tertiary-container px-3 py-1 text-xs font-semibold text-on-tertiary-container">
@@ -586,8 +738,12 @@ export default function CustomerDashboard() {
               <Card>
                 <div className="flex items-center justify-between gap-3 mb-5">
                   <div>
-                    <p className="text-xs font-bold tracking-[0.18em] uppercase text-on-surface-variant">Quick Actions</p>
-                    <h2 className="text-lg font-bold text-on-surface mt-1">Shortcuts</h2>
+                    <p className="text-xs font-bold tracking-[0.18em] uppercase text-on-surface-variant">
+                      Quick Actions
+                    </p>
+                    <h2 className="text-lg font-bold text-on-surface mt-1">
+                      Shortcuts
+                    </h2>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
@@ -600,7 +756,9 @@ export default function CustomerDashboard() {
                       aria-label={action.label}
                       onClick={() => openPanel(action.panel)}
                     >
-                      <span className="text-center leading-tight">{action.label}</span>
+                      <span className="text-center leading-tight">
+                        {action.label}
+                      </span>
                     </Button>
                   ))}
                 </div>
@@ -615,28 +773,33 @@ export default function CustomerDashboard() {
                 />
                 <div className="absolute inset-0 bg-primary/70" />
                 <div className="relative">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="min-w-0">
-                    <p className="text-xs font-bold tracking-[0.18em] uppercase text-on-primary/60">Security tip</p>
-                    <h2 className="mt-1 text-lg font-bold text-on-primary">Enable Two-Factor Authentication</h2>
-                    <p className="mt-3 text-sm leading-6 text-on-primary/75">
-                      Add a second approval step to protect your account from unauthorized access and make every login safer.
-                    </p>
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold tracking-[0.18em] uppercase text-on-primary/60">
+                        Security tip
+                      </p>
+                      <h2 className="mt-1 text-lg font-bold text-on-primary">
+                        Enable Two-Factor Authentication
+                      </h2>
+                      <p className="mt-3 text-sm leading-6 text-on-primary/75">
+                        Add a second approval step to protect your account from
+                        unauthorized access and make every login safer.
+                      </p>
+                    </div>
+                    <div className="rounded-full bg-on-primary/10 p-3 shrink-0">
+                      <Blocks size={20} className="text-on-primary" />
+                    </div>
                   </div>
-                  <div className="rounded-full bg-on-primary/10 p-3 shrink-0">
-                    <Blocks size={20} className="text-on-primary" />
+                  <div className="mt-6">
+                    <Button
+                      variant="secondary"
+                      className="w-full sm:w-auto text-on-secondary-container"
+                      icon={ArrowRight}
+                      onClick={() => openPanel("about")}
+                    >
+                      Learn More
+                    </Button>
                   </div>
-                </div>
-                <div className="mt-6">
-                  <Button
-                    variant="secondary"
-                    className="w-full sm:w-auto text-on-secondary-container"
-                    icon={ArrowRight}
-                    onClick={() => openPanel("about")}
-                  >
-                    Learn More
-                  </Button>
-                </div>
                 </div>
               </Card>
             </div>
@@ -644,8 +807,12 @@ export default function CustomerDashboard() {
             <Card padded={false}>
               <div className="flex items-center justify-between gap-3 p-5 md:p-6 border-b border-outline-variant">
                 <div>
-                  <p className="text-xs font-bold tracking-[0.18em] uppercase text-on-surface-variant">Recent Transactions</p>
-                  <h2 className="mt-1 text-lg font-bold text-on-surface">Activity feed</h2>
+                  <p className="text-xs font-bold tracking-[0.18em] uppercase text-on-surface-variant">
+                    Recent Transactions
+                  </p>
+                  <h2 className="mt-1 text-lg font-bold text-on-surface">
+                    Activity feed
+                  </h2>
                 </div>
                 <button className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary rounded-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-surface-lowest">
                   View All
@@ -655,7 +822,10 @@ export default function CustomerDashboard() {
 
               <div className="divide-y divide-outline-variant">
                 {customerTransactions.map((transaction) => (
-                  <TransactionRow key={transaction.id} transaction={transaction} />
+                  <TransactionRow
+                    key={transaction.id}
+                    transaction={transaction}
+                  />
                 ))}
               </div>
             </Card>
@@ -665,10 +835,18 @@ export default function CustomerDashboard() {
             <Card className="bg-primary text-on-primary shadow-soft">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-xs font-bold tracking-[0.18em] uppercase text-on-primary/60">Total Balance</p>
-                  <p className="mt-3 text-3xl font-bold text-on-primary">{currency(customerBalance.amount)}</p>
-                  <p className="mt-3 text-sm text-on-primary/70">{customerBalance.accountNumber}</p>
-                  <p className="mt-4 text-xs uppercase tracking-[0.14em] text-on-primary/50">Updated {customerBalance.lastUpdated}</p>
+                  <p className="text-xs font-bold tracking-[0.18em] uppercase text-on-primary/60">
+                    Total Balance
+                  </p>
+                  <p className="mt-3 text-3xl font-bold text-on-primary">
+                    {currency(customerBalance.amount)}
+                  </p>
+                  <p className="mt-3 text-sm text-on-primary/70">
+                    {customerBalance.accountNumber}
+                  </p>
+                  <p className="mt-4 text-xs uppercase tracking-[0.14em] text-on-primary/50">
+                    Updated {customerBalance.lastUpdated}
+                  </p>
                 </div>
                 <div className="w-12 h-12 rounded-2xl bg-on-primary/10 flex items-center justify-center shrink-0">
                   <div className="grid grid-cols-2 gap-1.5">
@@ -685,10 +863,15 @@ export default function CustomerDashboard() {
               <div className="relative">
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
-                    <p className="text-xs font-bold tracking-[0.18em] uppercase text-on-primary/60">No smartphone needed</p>
-                    <h2 className="mt-1 text-lg font-bold text-on-primary">Bank from any phone</h2>
+                    <p className="text-xs font-bold tracking-[0.18em] uppercase text-on-primary/60">
+                      No smartphone needed
+                    </p>
+                    <h2 className="mt-1 text-lg font-bold text-on-primary">
+                      Bank from any phone
+                    </h2>
                     <p className="mt-3 text-sm leading-6 text-on-primary/75">
-                      No internet, no app — SwitchGuard works on any phone through USSD, right where you are.
+                      No internet, no app — SwitchGuard works on any phone
+                      through USSD, right where you are.
                     </p>
                   </div>
                   <div className="rounded-full bg-on-primary/10 p-3 shrink-0">
@@ -711,8 +894,12 @@ export default function CustomerDashboard() {
             <Card>
               <div className="flex items-center justify-between gap-3 mb-5">
                 <div>
-                  <p className="text-xs font-bold tracking-[0.18em] uppercase text-on-surface-variant">My Cards</p>
-                  <h2 className="mt-1 text-lg font-bold text-on-surface">Linked cards</h2>
+                  <p className="text-xs font-bold tracking-[0.18em] uppercase text-on-surface-variant">
+                    My Cards
+                  </p>
+                  <h2 className="mt-1 text-lg font-bold text-on-surface">
+                    Linked cards
+                  </h2>
                 </div>
               </div>
               <div className="space-y-3">
@@ -732,7 +919,9 @@ export default function CustomerDashboard() {
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <p className="font-semibold text-on-surface truncate">{card.label}</p>
+                          <p className="font-semibold text-on-surface truncate">
+                            {card.label}
+                          </p>
                           {card.frozen && <Chip status="Frozen" />}
                         </div>
                         <p className="text-xs text-on-surface-variant mt-1">
