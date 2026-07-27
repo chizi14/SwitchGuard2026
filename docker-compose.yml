@@ -25,7 +25,7 @@ services:
       REVERSAL_AUTO_THRESHOLD_MWK: ${REVERSAL_AUTO_THRESHOLD_MWK:-100000}
       APP_ENV: ${APP_ENV:-production}
     ports:
-      - "8000:8000"
+      - "8013:8000"
     depends_on:
       db:
         condition: service_healthy
