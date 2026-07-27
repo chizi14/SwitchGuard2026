@@ -24,15 +24,11 @@ services:
       JWT_EXPIRY_MINUTES: ${JWT_EXPIRY_MINUTES:-60}
       REVERSAL_AUTO_THRESHOLD_MWK: ${REVERSAL_AUTO_THRESHOLD_MWK:-100000}
       APP_ENV: ${APP_ENV:-production}
+    ports:
+      - "8000:8000"
     depends_on:
       db:
         condition: service_healthy
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.sg-api.rule=Host(`${DOMAIN}`) && PathPrefix(`/api`) || Host(`${DOMAIN}`) && PathPrefix(`/health`)"
-      - "traefik.http.routers.sg-api.entrypoints=websecure"
-      - "traefik.http.routers.sg-api.tls.certresolver=letsencrypt"
-      - "traefik.http.services.sg-api.loadbalancer.server.port=8000"
 
   frontend:
     build:
@@ -40,14 +36,10 @@ services:
       args:
         VITE_API_BASE_URL: ""
     restart: unless-stopped
+    ports:
+      - "80:5173"
     depends_on:
       - backend
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.sg-web.rule=Host(`${DOMAIN}`)"
-      - "traefik.http.routers.sg-web.entrypoints=websecure"
-      - "traefik.http.routers.sg-web.tls.certresolver=letsencrypt"
-      - "traefik.http.services.sg-web.loadbalancer.server.port=5173"
 
 volumes:
   pgdata:
