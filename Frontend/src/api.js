@@ -2,10 +2,14 @@
  * SwitchGuard API Client
  *
  * Centralized HTTP client that replaces all mockData.js imports.
- * Base URL defaults to localhost:8000 — override with VITE_API_BASE_URL env var.
+ *
+ * In development (npm run dev):      points to http://localhost:8000
+ * In production (Docker/nginx):      uses empty base (nginx proxies /api/*)
+ * Override with VITE_API_BASE_URL env var if needed.
  */
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL ||
+  (import.meta.env.DEV ? "http://localhost:8000" : "");
 
 function authHeaders() {
   const token = localStorage.getItem("switchguard-token");

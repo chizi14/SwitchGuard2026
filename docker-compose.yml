@@ -1,8 +1,7 @@
-version: "3.9"
-
 services:
   db:
     image: postgres:16
+    container_name: switchguard-db
     restart: unless-stopped
     env_file: .env
     environment:
@@ -22,6 +21,7 @@ services:
 
   backend:
     build: ./backend
+    container_name: switchguard-api
     restart: unless-stopped
     env_file: .env
     environment:
@@ -29,25 +29,21 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRY_MINUTES: ${JWT_EXPIRY_MINUTES:-60}
       REVERSAL_AUTO_THRESHOLD_MWK: ${REVERSAL_AUTO_THRESHOLD_MWK:-100000}
-      APP_ENV: ${APP_ENV:-development}
+      APP_ENV: ${APP_ENV:-production}
     ports:
       - "8000:8000"
     depends_on:
       db:
         condition: service_healthy
-    volumes:
-      - ./backend:/app
 
   frontend:
     build: ./frontend
+    container_name: switchguard-web
     restart: unless-stopped
     ports:
       - "5173:5173"
     depends_on:
       - backend
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
 
 volumes:
   pgdata:
