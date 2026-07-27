@@ -1,0 +1,11 @@
+__pycache__
+*.pyc
+.venv
+venv
+env
+.env
+.git
+.gitignore
+*.md
+alembic/versions/*
+!alembic/versions/.gitkeep
